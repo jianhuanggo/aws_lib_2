@@ -1,0 +1,10 @@
+command_10:
+  _working_dir_: "{{ DW_HOME }}/dw/tubibricks"
+  _command_:
+    - cd {{ DW_HOME }}/dw/tubibricks && dbt run --target={{ DEPLOYMENT_ENV }} --vars '{"start_date":"{{ START_DATE }}", "end_date":"{{ END_DATE }}"}' -m '{{ MODEL_NAME }}'
+
+
+
+
+
+
