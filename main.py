@@ -1,4 +1,8 @@
 import json
+import xxlimited
+from unittest.mock import numerics
+
+from pandas.core.computation.expressions import where
 
 from _connect import _connect as _connect_
 from typing import Dict
@@ -316,6 +320,292 @@ def redshift():
     print([each_record.get("ClusterIdentifier") for each_record in aws_object._client.describe_clusters().get("Clusters", [])])
 
 
+def random(table_name: str):
+    a = """
+     _id
+ _last_updated
+ country
+ ms
+ new_retained_d112to140_sketch
+ new_retained_d140to168_sketch
+ new_retained_d1to28_sketch
+ new_retained_d1to7_sketch
+ new_retained_d28to56_sketch
+ new_retained_d56to84_sketch
+ new_retained_d84to112_sketch
+ new_retention_denominator_sketch
+ platform
+ platform_type
+ returning_retained_d112to140_month_sketch
+ returning_retained_d140to168_month_sketch
+ returning_retained_d1to28_month_sketch
+ returning_retained_d1to7_month_sketch
+ returning_retained_d28to56_month_sketch
+ returning_retained_d56to84_month_sketch
+ returning_retained_d84to112_month_sketch
+ returning_retention_denominator_month_sketch
+    """
+    def transform_hll(column_name):
+        return f"HLL_CARDINALITY({column_name}) as {column_name}, \n"
+
+    result = "select \n"
+    for line in a.split("\n"):
+        line = line.strip()
+        if line:
+            if line.endswith("sketch"):
+                result += transform_hll(line)
+                # result += f"cast({line.strip()} as BIGINT) as {line},\n"
+            else:
+                result += line + ",\n"
+
+    return result.strip()[:-1] + "\nfrom " + table_name
+
+from typing import  List
+def gen_validation_sql(table_name1: str,
+                       table_name2: str,
+                       join_col, excluded_col: List = [],
+                       group_by: List = [],
+                       where: str = ""):
+    sql_string = """
+_id STRING,
+  _last_updated TIMESTAMP,
+  ds TIMESTAMP,
+  platform STRING,
+  device_id STRING,
+  device_first_seen_ts TIMESTAMP,
+  device_first_view_ts TIMESTAMP,
+  geo_country_code STRING,
+  app_id_group STRING,
+  ad_impression_total_count BIGINT,
+  gross_revenue DECIMAL(33,7),
+  total_revenue DECIMAL(33,7),
+  gross_vod_revenue DECIMAL(33,7),
+  total_vod_revenue DECIMAL(33,7),
+  gross_linear_revenue DECIMAL(33,7),
+  total_linear_revenue DECIMAL(33,7),
+  valid_ad_opportunities_count BIGINT,
+  filled_ad_opportunities_count BIGINT,
+  unbudgeted_revenue DECIMAL(37,7),
+  unclassified_revenue DECIMAL(37,7),
+  budgeted_revenue DECIMAL(38,6))
+
+
+    """
+    from typing import Tuple
+    def transform(column_name, column_type):
+        return f"t1.{column_name} / greatest(0.01, t2.{column_name}) * 100, \n"
+
+    def get_cte(table_label:str,
+                table_name: str,
+                col_list: List,
+                group_by: List = "",
+                where_clause: str = "",
+                join_col: List = [],
+                first_cte: bool = False
+                ):
+
+
+        result = f"with {table_label} as (" if first_cte else f" {table_label} as ("
+        result += "\nselect \n"
+        for each_column, column_type in col_list:
+            if column_type.startswith("DECIMAL"):
+                result += f"sum(coalesce({each_column},0)) as {each_column},\n"
+            # else:
+            #     result += f"first_value({each_column}),\n"
+        return result.strip()[:-1] + " \nfrom " + table_name + f"\n  {where_clause} \n " + f"group by {','.join(group_by)}  )"
+
+    def parse(input_string: str) -> Tuple[str, str]:
+        # print([line.strip() for line in sql_string.split("\n") if line.strip()])
+        # exit(0)
+        return [(line.strip().split()[0], line.strip().split()[1]) for line in sql_string.split("\n")  if line.strip()]
+
+    col_name_type = parse(sql_string)
+
+    result = get_cte("old_data", table_name1, col_name_type, group_by=group_by, where_clause=where, join_col=["ds"], first_cte=True)
+
+    result += ", " + get_cte("new_data", table_name2, col_name_type, group_by=group_by, where_clause=where, join_col=["ds"])
+
+    result += "\nselect \n"
+    for line in sql_string.split("\n"):
+        line = line.strip()
+        if line:
+            col_name, col_type = line.split()
+            if col_name not in excluded_col:
+                if col_type.startswith("DECIMAL"):
+                    result += f"t1.{col_name} ,"
+                    result += f"t2.{col_name} ,"
+                    result += transform(col_name, col_type)
+
+
+            # if line.endswith("sketch"):
+
+                # result += f"cast({line.strip()} as BIGINT) as {line},\n"
+            # else:
+            #     result += line + ",\n"
+
+    final_sql = result.strip()[:-1] + f"\nfrom {table_name1} t1 inner join {table_name2} t2 using ({''.join(join_col)})\n"
+    from _util import _util_file
+    counter = 0
+    dirpath = "/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2"
+    from os import path
+    file_name_prefix = "v"
+    file_name = f"{file_name_prefix}{str(counter)}.sql"
+    while _util_file.is_file_exist(path.join(dirpath, file_name)):
+        counter += 1
+        file_name = f"{file_name_prefix}{str(counter)}.sql"
+    _util_file.write_file(path.join(dirpath, file_name), final_sql, "w")
+
+
+def _get_redshift():
+    from _api import redshift
+    from pyspark import SparkContext, SparkConf
+
+
+    conf = SparkConf().setAppName("testApp")
+    sc = SparkContext(conf=conf)
+    client = redshift.Redshift(sc)
+    client.query("select count(*) from t1")
+
+
+
+def _get_spark():
+    from _api import _databricks
+    _databricks.run2()
+
+
+
+def _test_spark():
+    from _connect import _connect as _connect_
+
+    api_object = _connect_.get_api("databrickscluster", "config_dev")
+    print(api_object)
+    exit(0)
+
+    from _api import _databricks
+
+
+def validation_sql():
+
+    from _connect import _connect as _connect_
+    object_api = _connect_.get_api("databrickscluster", "config_dev")
+
+    # object_api = _connect_.get_api("databrickscluster", "config_prod")
+
+
+
+    _new_data = """select 
+    sum(coalesce(gross_revenue,0)) as gross_revenue,
+    sum(coalesce(total_revenue,0)) as total_revenue,
+    sum(coalesce(gross_vod_revenue,0)) as gross_vod_revenue,
+    sum(coalesce(total_vod_revenue,0)) as total_vod_revenue,
+    sum(coalesce(gross_linear_revenue,0)) as gross_linear_revenue,
+    sum(coalesce(total_linear_revenue,0)) as total_linear_revenue,
+    sum(coalesce(unbudgeted_revenue,0)) as unbudgeted_revenue,
+    sum(coalesce(unclassified_revenue,0)) as unclassified_revenue,
+    sum(coalesce(budgeted_revenue,0)) as budgeted_revenue 
+    from hive_metastore.tubidw_dev.revenue_bydevice_daily
+      where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC("day", TO_DATE('2024-08-01', "yyyy-MM-dd")) AND TO_DATE(ds, "yyyy-MM-dd") < DATE_TRUNC("day", TO_DATE('2024-08-01', "yyyy-MM-dd")) 
+     group by ds
+     limit 10
+
+        """
+
+    _old_data = """select 
+    sum(coalesce(gross_revenue,0)) as gross_revenue,
+    sum(coalesce(total_revenue,0)) as total_revenue,
+    sum(coalesce(gross_vod_revenue,0)) as gross_vod_revenue,
+    sum(coalesce(total_vod_revenue,0)) as total_vod_revenue,
+    sum(coalesce(gross_linear_revenue,0)) as gross_linear_revenue,
+    sum(coalesce(total_linear_revenue,0)) as total_linear_revenue,
+    sum(coalesce(unbudgeted_revenue,0)) as unbudgeted_revenue,
+    sum(coalesce(unclassified_revenue,0)) as unclassified_revenue,
+    sum(coalesce(budgeted_revenue,0)) as budgeted_revenue 
+    from hive_metastore.tubidw.revenue_bydevice_daily
+      where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC("day", TO_DATE('2024-08-01', "yyyy-MM-dd")) AND TO_DATE(ds, "yyyy-MM-dd") < DATE_TRUNC("day", TO_DATE('2024-08-08', "yyyy-MM-dd")) 
+     group by ds
+    """
+
+    test = """
+    select 1 
+
+    """
+
+    q = """
+    select ds, count(1) as cnt
+    from hive_metastore.tubidw.adserver_metrics_daily
+    where ds between
+    '2024-04-01' and '2024-04-10'
+    group by ds
+    order by 1
+    """
+
+
+    new_table_name = "revenue_bydevice_daily"
+    from pprint import pprint
+
+
+    # x = object_api.query(_new_data)
+    x = object_api.query(test)
+    pprint(x)
+    print(type(x))
+
+    exit(0)
+
+
+    import plotly.express as px
+
+
+
+    pdf_new = (pdf_new_result := object_api.query(_new_data)) and pdf_new_result.sum(numeric_only=True)
+    print(pdf_new)
+    exit(0)
+
+    pdf_old = (pdf_old_result := object_api.query(_old_data)) and pdf_old_result.sum(numeric_only=True)
+
+    #
+    # pdf_new = spark.sql(q3).toPandas().sum(numeric_only=True)
+    # pdf_old = spark.sql(q3).toPandas().sum(numeric_only=True)
+    pdf = ((pdf_new - pdf_old) / abs(pdf_old)).round(4).dropna().sort_values()
+    pdf = pdf[pdf != 0]
+    # convert series in a usable dataframe with column labels based on index
+    px_df = pdf.to_frame().reset_index().rename(columns={"index": "metric", 0: "per_diff"})
+    # chart
+    fig = px.bar(px_df, x="metric", y="per_diff", color="per_diff", title=f"{new_table_name} Metric Differences")
+    fig.layout.yaxis.tickformat = ',.0%'
+    fig.update_layout(showlegend=False)
+    fig.show()
+
+def hist_temp(env: str):
+    from _util import _util_file
+    from pprint import pprint
+    result = []
+    counter = 0
+    content = _util_file.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/temp/801954_hist_load.txt")
+    for each_line in content.split("\n"):
+
+
+        com_key = f"command_{counter}"
+        temp = {com_key: {
+            "_working_dir_": "{{ DW_HOME }}/dw/tubibricks",
+            "_timeout_": "43200"}
+        }
+        fields = each_line.split()
+        fields[2] = f"--target={env}"
+        fields = [x.strip() for x in fields]
+        temp[com_key]["_command_"] = " ".join(fields)
+        # temp[com_key]["_command_"] = temp[com_key]["_command_"].replace("\n", "")
+        result.append(temp)
+        print(temp[com_key]["_command_"])
+
+        counter += 10
+    _util_file.yaml_dump2("801954_hist_load.yaml", result)
+
+    # for each_command in _util_file.yaml_load("801954_hist_load.yaml"):
+    #     for command_index, command in each_command.items():
+    #         print(command["_command_"])
+    #         print(len(command["_command_"]))
+    #         print(command["_command_"].count("\n"))
+
 
 
 
@@ -324,6 +614,33 @@ def redshift():
 
 
 if __name__ == '__main__':
+    hist_temp("dev")
+    exit(0)
+    validation_sql()
+    exit(0)
+    _test_spark()
+    exit(0)
+    _get_spark()
+    exit(0)
+    _get_redshift()
+    exit(0)
+    print(gen_validation_sql("hive_metastore.tubidw.revenue_bydevice_daily",
+                             "hive_metastore.tubidw_dev.revenue_bydevice_daily",
+                             ["ds"],
+                             ["_id", "ds"],
+                             ["ds"],
+                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC(\"day\", TO_DATE('2024-08-01', \"yyyy-MM-dd\")) AND TO_DATE(ds, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('2024-08-08', \"yyyy-MM-dd\"))"))
+    exit(0)
+    print(gen_validation_sql("hive_metastore.tubidw.revenue_bydevice_daily",
+                             "hive_metastore.tubidw_dev.revenue_bydevice_daily",
+                             ["ds"],
+                             ["_id", "ds"],
+                             ["ds"],
+                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC(\"day\", TO_DATE('2024-09-01', \"yyyy-MM-dd\")) AND TO_DATE(ds, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('2024-11-15', \"yyyy-MM-dd\"))"))
+    exit(0)
+
+    print(random("tubidw.retention_sketch_monthly_byplatform_bycountry"))
+    exit(0)
     databricks_sdk()
     exit(0)
     redshift()
