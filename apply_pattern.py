@@ -1,3 +1,5 @@
+import os
+
 import click
 from logging import Logger as Log
 from _common import _common as _common_
@@ -65,26 +67,54 @@ def apply_pattern(pattern_template_filepath: str,
 
     if dw_home:
         _config.config["DW_HOME"] = dw_home
+    elif "DW_HOME" in os.environ:
+        _config.config["DW_HOME"] = os.environ.get("DW_HOME")
+
     if model_name:
         _config.config["MODEL_NAME"] = model_name
+    elif "MODEL_NAME" in os.environ:
+        _config.config["MODEL_NAME"] = os.environ.get("MODEL_NAME")
+
     if model_dir:
         _config.config["MODEL_DIR"] = model_dir
+    elif "MODEL_DIR" in os.environ:
+        _config.config["MODEL_DIR"] = os.environ.get("MODEL_DIR")
+
     if github_branch:
         _config.config["GITHUB_BRANCH"] = github_branch
+    elif "GITHUB_BRANCH" in os.environ:
+        _config.config["GITHUB_BRANCH"] = os.environ.get("GITHUB_BRANCH")
+
     if start_date:
         _config.config["START_DATE"] = start_date
+    elif "START_DATE" in os.environ:
+        _config.config["START_DATE"] = os.environ.get("START_DATE")
+
     if end_date:
         _config.config["END_DATE"] = end_date
+    elif "END_DATE" in os.environ:
+        _config.config["END_DATE"] = os.environ.get("END_DATE")
+
     if time_interval:
         _config.config["TIME_INTERVAL"] = end_date
+    elif "TIME_INTERVAL" in os.environ:
+        _config.config["TIME_INTERVAL"] = os.environ.get("TIME_INTERVAL")
+
     if development_env:
         _config.config["DEPLOYMENT_ENV"] = development_env
+    elif "DEPLOYMENT_ENV" in os.environ:
+        _config.config["DEPLOYMENT_ENV"] = os.environ.get("DEPLOYMENT_ENV")
+
     if dry_run:
         _config.config["DRY_RUN"] = dry_run
+    elif "DRY_RUN" in os.environ:
+        _config.config["DRY_RUN"] = os.environ.get("DRY_RUN")
 
 
     print(_config.config.get("DEPLOYMENT_ENV"))
     print(_config.config.get("DRY_RUN"))
+
+
 
     # exit(0)
 
