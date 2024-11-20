@@ -38,18 +38,28 @@ class APIDatabricksCluster(metaclass=_meta_.MetaAPI):
         start_time = datetime.now()
         sql_reformat = query_string[:20].replace("\n", "")
         _common_.info_logger(f"starting query {sql_reformat} at {start_time}", logger=logger)
-
-        query_string = """
-        select ds, count(1) as cnt
-        from hive_metastore.tubidw.revenue_bydevice_daily where ds between 
-        '2024-08-01' and '2024-08-02'
-        group by 1
-        """
-        x = self.client.sql(query_string)
-        x.show()
-        exit(0)
-        result = self.client.sql(query_string).toPandas()
+        result = self.client.sql(query_string)
+        print(result.show())
+        result_pd = result.toPandas()
         end_time = datetime.now()
         _common_.info_logger(f"query completed at {end_time}", logger=logger)
         _common_.info_logger(f"total duration is {end_time - start_time}", logger=logger)
-        return result
+        return  result_pd
+
+
+    """
+    pdf_new = df_new.toPandas().sum(numeric_only=True)
+pdf_old = df_old.toPandas().sum(numeric_only=True)
+pdf = ((pdf_new - pdf_old)/abs(pdf_old)).round(4).dropna().sort_values()
+pdf = pdf[pdf != 0]
+
+# convert series in a usable dataframe with column labels based on index
+px_df = pdf.to_frame().reset_index().rename(columns={"index": "metric", 0:"per_diff"})
+
+# chart
+fig = px.bar(px_df, x="metric", y="per_diff", color="per_diff", title=f"{new_table_name} Metric Differences")
+fig.layout.yaxis.tickformat = ',.0%'
+fig.update_layout(showlegend=False)
+fig.show()
+    
+    """
