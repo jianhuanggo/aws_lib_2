@@ -3,6 +3,7 @@ import xxlimited
 from unittest.mock import numerics
 
 from pandas.core.computation.expressions import where
+from pyarrow import table
 
 from _connect import _connect as _connect_
 from typing import Dict
@@ -537,6 +538,7 @@ def validation_sql():
     '2024-04-01' and '2024-04-10'
     group by ds
     order by 1
+    
     """
 
 
@@ -544,12 +546,127 @@ def validation_sql():
     from pprint import pprint
 
 
+
+# """
+#
+# pdf_new = df_new.toPandas().sum(numeric_only=True)
+# pdf_old = df_old.toPandas().sum(numeric_only=True)
+# pdf = ((pdf_new - pdf_old)/abs(pdf_old)).round(4).dropna().sort_values()
+# pdf = pdf[pdf != 0]
+#
+# # convert series in a usable dataframe with column labels based on index
+# px_df = pdf.to_frame().reset_index().rename(columns={"index": "metric", 0:"per_diff"})
+#
+# # chart
+# fig = px.bar(px_df, x="metric", y="per_diff", color="per_diff", title=f"{new_table_name} Metric Differences")
+# fig.layout.yaxis.tickformat = ',.0%'
+# fig.update_layout(showlegend=False)
+# fig.show()
+# """
+
     # x = object_api.query(_new_data)
-    x = object_api.query(test)
-    pprint(x)
-    print(type(x))
+    def get_date(curr_date: str):
+        from datetime import datetime, timedelta
+        try:
+            date_obj = datetime.strptime(curr_date, "%Y-%m-%d")
+            next_day = date_obj + timedelta(days=1)
+            end_date = next_day.strftime("%Y-%m-%d")
+        except ValueError:
+            raise
+        return (f"select * from hive_metastore.tubidw.revenue_bydevice_daily where ds between {curr_date} and {end_date} limit 20",
+                f"select * from hive_metastore.tubidw_dev.revenue_bydevice_daily where ds between {curr_date} and {end_date} limit 20")
+
+    def get_column(column_info):
+        from collections import defaultdict
+
+        c_type = {
+            "INTEGER": "numeric",
+            "DECIMAL": "numeric",
+            "VARCHAR": "text",
+            "TEXT": "text",
+        }
+        column_type_lookup = defaultdict(str)
+        columns = set()
+        for column_name, column_type in column_info:
+            column_type_lookup[column_name] = c_type.get(column_type, "text")
+            columns.add(column_name)
+        return column_type_lookup, columns
+
+
+
+    def generate_sql(table_1: str, table_2: str, date_column: str, join_column: str):
+
+        return "with (select " + \
+        ",".join([f"sum({common_column[0]})" if common_column[1] == "numeric"
+         else f"first_value({common_column[1]})" for common_column in zip(set(get_column(table_1)) & set(get_column(table_2)))]) + \
+         f"\nfrom {table_1} where {date_column} between '2024-04-01' and '2024-04-01')"
+
+
+
+    # print(generate_sql("hive_metastore.tubidw_dev.revenue_bydevice_daily",
+    #              "hive_metastore.tubidw.revenue_bydevice_daily", "ds", "ds"))
+
+
+
+    sql_1 = "show create table hive_metastore.tubidw_dev.revenue_bydevice_daily"
+    x = object_api.query(sql_1)
 
     exit(0)
+    print(len(x.columns))
+    print(type(x))
+    print(x[1])
+    print(x.iloc[:, 1])
+    exit(0)
+    print(x.toJSON().collect())
+    # [print(type(x))
+
+
+
+
+
+    sql1, sql2 = get_date("2024-08-01")
+
+    pprint(sql1)
+    pprint(sql2)
+
+    old_data = object_api.query(sql1)
+    new_data = object_api.query(sql2)
+
+    df_old = old_data.toPandas()
+    df_new = new_data.toPandas()
+
+    pdf_new = df_new.sum(numeric_only=True)
+    pdf_old = df_old.sum(numeric_only=True)
+    pprint(pdf_new)
+    pprint(pdf_old)
+
+    exit(0)
+
+    # """
+    #
+    #
+    #         query_string = """
+    #     select *
+    #     from hive_metastore.tubidw.revenue_bydevice_daily where ds between
+    #     '2024-08-01' and '2024-08-02'
+    #     group by 1
+    #     """
+    #     x = self.client.sql(query_string)
+    #     x.show()
+    #     print(type(x))
+    #     df_new = x.toPandas()
+    #     df_old = x.toPandas()
+    #
+    #     pdf_new = df_new.sum(numeric_only=True)
+    #     pdf_old = df_old.sum(numeric_only=True)
+    #     pdf = ((pdf_new - pdf_old) / abs(pdf_old)).round(4).dropna().sort_values()
+    #     pdf = pdf[pdf != 0]
+    #
+    #     px_df = pdf.to_frame().reset_index().rename(columns={"index": "metric", 0: "per_diff"})
+    #
+    #     print(px_df)
+    #     exit(0)
+    #     """
 
 
     import plotly.express as px
@@ -614,8 +731,8 @@ def hist_temp(env: str):
 
 
 if __name__ == '__main__':
-    hist_temp("dev")
-    exit(0)
+    # hist_temp("dev")
+    # exit(0)
     validation_sql()
     exit(0)
     _test_spark()

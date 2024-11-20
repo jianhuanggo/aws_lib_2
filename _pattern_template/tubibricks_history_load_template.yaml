@@ -49,7 +49,7 @@ command_110:
   _working_dir_: "{{ DW_HOME }}/dw"
   _timeout_: "7200"
   _command_:
-    - cd {{ DW_HOME }}/dw && pipenv run workflow --project tubibricks --target {{ DEPLOYMENT_ENV }} --job_name {{ MODEL_NAME }} --command run --selectors '{{ MODEL_NAME }}' --start {{ START_DATE }} --end {{ END_DATE }} {{ TIME_INTERVAL }} --enabled_notifications False
+    - cd {{ DW_HOME }}/dw && pipenv run workflow --project tubibricks --target {{ DEPLOYMENT_ENV }} --job_name {{ MODEL_NAME }} --command run --selectors '{{ MODEL_NAME }}' --start {{ START_DATE }} --end {{ END_DATE }} {{ TIME_INTERVAL }} --enabled_notifications false
 
 command_120:
   _command_:
