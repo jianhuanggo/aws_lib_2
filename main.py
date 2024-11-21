@@ -724,6 +724,20 @@ def hist_temp(env: str):
     #         print(command["_command_"].count("\n"))
 
 
+def get_schema_info():
+    from _util import _util_file
+    sql_text = _util_file.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/temp/adserver_metrics_daily.ddl")
+
+    sql_object = _connect_.get_directive(object_name="sqlparse", profile_name="config_dev")
+    x = sql_object.extract_info_from_ddl(sql_text)
+    print(sql_object.generate_manifest_from_ddl(
+        database_name="hive_metastore",
+        schema_name="tubidw",
+        table_name = "adserver_metrics_daily",
+        column_names = x
+    ))
+
+
 
 
 
@@ -731,6 +745,8 @@ def hist_temp(env: str):
 
 
 if __name__ == '__main__':
+    get_schema_info()
+    exit(0)
     # hist_temp("dev")
     # exit(0)
     validation_sql()
