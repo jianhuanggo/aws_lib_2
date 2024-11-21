@@ -1,4 +1,3 @@
-from heapq import heappush
 from inspect import currentframe
 from typing import List, Dict, Tuple, Iterator, Union
 
@@ -134,7 +133,8 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
             yield a list catalogs
 
         """
-        yield from (each_job.job_id for each_job in self.client.jobs.list(name=job_name))
+        print([each_job.job_id for each_job in self.client.jobs.list(name=job_name)])
+        return [each_job.job_id for each_job in self.client.jobs.list(name=job_name)]
 
     @_common_.exception_handler
     def job_run_now_job_id(self, job_id: int, logger: Log = None, *arg, **kwargs) -> Wait:
@@ -152,8 +152,7 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         """
         return self.client.jobs.run_now(job_id)
 
-    @_common_.exception_handler
-    def job_repair_now_job_id(self, job_run_id: int, logger: Log = None, *arg, **kwargs) -> Wait:
+    def job_repair_now_job_id(self, job_run_id: int, logger: Log = None, *arg, **kwargs) -> Tuple[bool, Union[str, None]]:
         """ restart workflow by job_run_id
 
         Args:
@@ -166,9 +165,16 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
             yield a databricks wait object
 
         """
-        # print(job_run_id)
-        # exit(0)
-        return self.client.jobs.repair_run(run_id=job_run_id, rerun_all_failed_tasks=True)
+        try:
+            self.client.jobs.repair_run(run_id=job_run_id, rerun_all_failed_tasks=True)
+            return True, None
+        except Exception as err:
+            _common_.error_logger(currentframe().f_code.co_name,
+                err,
+                logger=None,
+                mode="error",
+                ignore_flag=True)
+            return False, err
 
     @_common_.exception_handler
     def get_job_run_id(self, job_id: int, logger: Log = None, *arg, **kwargs) -> List:
@@ -188,14 +194,18 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                     for each_job in self.list_runs_by_jobid(job_id=job_id) if each_job.state.life_cycle_state.value == "RUNNING"]
 
     @_common_.exception_handler
-    def run_monitor_job(self, job_name: str, logger: Log = None, *arg, **kwargs) -> bool:
+    def run_monitor_job(self,
+                        user_name: str,
+                        job_name: str,
+                        logger: Log = None, *arg, **kwargs) -> bool:
         """ monitor the job by job name and restart it if it fails
 
         Args:
-             job_name: databricks workflow job name
-             logger: logger object
-             *arg:
-             **kwargs:
+            user_name: user name of the databricks workflow jobs
+            job_name: databricks workflow job name
+            logger: logger object
+            *arg:
+            **kwargs:
 
         Returns:
             return True if it completes successfully otherwise return False
@@ -205,88 +215,86 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         from time import sleep
         _WAIT_TIME_INTERVAL_ = 60
 
-        def get_last_running_id(job_id: int) -> Tuple[int, Union[int, None]]:
-            # get the latest run id by start time, not the end time
-            print(sorted([(getattr(each_job, "job_id"),
-                                         getattr(each_job, "run_id"),
-                                         getattr(each_job, "original_attempt_run_id"),
-                                         getattr(getattr(getattr(each_job, "state"), "life_cycle_state"), "value"),
-                                         getattr(each_job, "end_time")) for each_job in
-                                        self.list_runs_by_jobid(job_id=job_id)]))
-
+        @_common_.exception_handler
+        def get_last_running_id(job_id: int) -> Tuple[int, int, int, Union[str, None], Union[int, None]]:
             try:
-                return (runs := sorted([(getattr(each_job, "job_id"),
-                                         getattr(each_job, "run_id"),
-                                         getattr(each_job, "original_attempt_run_id"),
-                                         getattr(getattr(getattr(each_job, "state"), "life_cycle_state"), "value"),
-                                         getattr(each_job, "start_time")) for each_job in
-                                        self.list_runs_by_jobid(job_id=job_id)],
-                                       key=lambda x: - x[4])) and (runs[0][1], runs[0][3])
+                if runs := list(self.list_runs_by_jobid(job_id=job_id)):
+                    return sorted([(getattr(each_job, "job_id"),
+                                    getattr(each_job, "run_id"),
+                                    getattr(each_job, "original_attempt_run_id"),
+                                    getattr(getattr(getattr(each_job, "state"), "life_cycle_state"), "value"),
+                                    getattr(each_job, "start_time")) for each_job in runs],  key=lambda x: - x[4])
+                else:
+                    return -1, -1, -1, None, None
 
             except Exception as err:
-                print(err)
-                return -1, None
+                _common_.error_logger(currentframe().f_code.co_name,
+                      f"there are multiple jobs found with the same name, please check",
+                      logger=logger,
+                      mode="error",
+                      ignore_flag=True)
+                return -1, -1, -1, None, None
 
+        @_common_.exception_handler
         def monitoring_job(user_name: str,
                            job_id: int):
-
             while running_job := get_last_running_id(job_id=job_id):
-                job_run_id, job_status = running_job
+                job_id, job_run_id, job_orginal_id, job_status, start_time = running_job[0]
                 print(job_run_id, job_status)
                 if job_status == "RUNNING":
                     _common_.info_logger(f"job_id {job_id} is running, please wait...", logger=logger)
                     sleep(_WAIT_TIME_INTERVAL_)
                 elif job_status == "INTERNAL_ERROR":
                     _common_.info_logger(f"job_id {job_id} is encountered internal error, starting retry...", logger=logger)
-                    self.job_repair_now_job_id(job_run_id=job_run_id)
+                    return_code, error_msg = self.job_repair_now_job_id(job_run_id=job_run_id)
+                    if return_code is False:
+                        _common_.error_logger(currentframe().f_code.co_name,
+                            f"Error, cannot restart the job due to {error_msg}",
+                            logger=logger,
+                            mode="error",
+                            ignore_flag=False)
+
                 else:
                     _common_.info_logger(f"job_id {job_id} is {status}, exit waiting.", logger=logger)
                     break
 
-
+        print(job_name)
         jobs = list(self.get_job_id_by_name(job_name=job_name))
+        print(jobs)
 
-        job_run_id, status = get_last_running_id(jobs[0])
-        # print(job_run_id, status)
-        # exit(0)
         if len(jobs) > 1:
             _common_.error_logger(currentframe().f_code.co_name,
                                   f"there are multiple jobs found with the same name, please check",
-                                  logger=None,
+                                  logger=logger,
                                   mode="error",
                                   ignore_flag=False)
+
+        if len(jobs) == 0:
+            job_id, job_run_id, job_orginal_id, status, start_time  = -1, -1, -1, None, None
+        else:
+            job_id, job_run_id, job_orginal_id, status, start_time = get_last_running_id(jobs[0])[0]
 
         if job_run_id == -1:
             self.job_run_now_job_id(job_id=jobs[0])
             sleep(_WAIT_TIME_INTERVAL_)
         elif status == "INTERNAL_ERROR":
-            _common_.info_logger(f"job_id {jobs[0]} is encountered internal error, starting retry...",
-                                 logger=logger)
-            self.job_repair_now_job_id(job_run_id=job_run_id)
-            sleep(_WAIT_TIME_INTERVAL_)
+            try:
+                _common_.info_logger(f"job_id {jobs[0]} is encountered internal error, starting retry...",
+                                     logger=logger)
+                return_code, error_msg = self.job_repair_now_job_id(job_run_id=job_run_id)
+                if return_code is False and "Number of tasks changed" in str(error_msg):
+                    self.job_run_now_job_id(job_id=jobs[0])
 
+            except Exception as err:
+                _common_.error_logger(currentframe().f_code.co_name,
+                      f"Error, {err}",
+                      logger=logger,
+                      mode="error",
+                      ignore_flag=False)
 
+                sleep(_WAIT_TIME_INTERVAL_)
 
-
-
-        # status = list(self.list_runs_by_jobid(job_id=jobs[0]))
-
-        #
-        # if len(list(self.list_runs_by_jobid(job_id=jobs[0]))) == 0:
-        #     self.job_run_now_job_id(job_id=jobs[0])
-        #     sleep(_WAIT_TIME_INTERVAL_)
-        # else:
-        #     last_run = sorted([(each_job.job_id,
-        #                         each_job.run_id,
-        #                         each_job.original_attempt_run_id,
-        #                         each_job.state.life_cycle_state.value,
-        #                         each_job.end_time) for each_job in status], key=lambda x: - x[4])[0]
-        #     if last_run[3] == "INTERNAL_ERROR":
-        #         _common_.info_logger(f"job_id {last_run[0]} is encountered internal error, starting retry...", logger=logger)
-        #         _common_.info_logger(self.job_repair_now_job_id(job_run_id=last_run[1]), logger=logger)
-        #         sleep(_WAIT_TIME_INTERVAL_)
-
-        monitoring_job("jian.huang@tubi.tv", jobs[0])
+        monitoring_job(f"{user_name}@tubi.tv", jobs[0])
         return True
 
 

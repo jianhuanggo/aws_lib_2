@@ -28,6 +28,7 @@ from _aws import _awsredshift_data
 from _directive import process_task
 from _directive import image_to_text
 from _directive import databricks_sdk
+from _directive import sqlparse
 from _api import _databricks
 
 
