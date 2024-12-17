@@ -739,12 +739,47 @@ def get_schema_info():
 
 
 
+def gen_schema_yaml(table_def_filepath: str):
+    from _util import _util_file as _util_file_
+    object_directive = _connect_.get_directive(object_name="sqlparse", profile_name="config_dev")
+    sql_text = _util_file_.identity_load_file(table_def_filepath)
 
+    column_with_desc = []
+    for each_column in object_directive.extract_info_from_ddl(sql_text):
+        column_with_desc.append((each_column[0], each_column[1], each_column[0].replace("_", " ")))
+    print(column_with_desc)
+
+
+
+    object_directive.generate_model_yaml_from_ddl(
+        table_name="adserver_metrics_daily",
+        table_description="This aggregated table with the desired dimensions and metrics will speed up the querying and can be used in dashboards and also ad-hoc analysis",
+        output_filepath="",
+        column_names=column_with_desc ,
+        column_key=["_id"],
+        not_null_columns=["_id", "ds"]
+    )
+
+def get_metadata_sql(filepath: str):
+    from _util import _util_file
+
+    sql_object = _connect_.get_directive(object_name="sqlparse", profile_name="config_dev")
+    column_list = sql_object.extract_column_from_sq(filepath=filepath)
+    print(column_list)
+    exit(0)
+
+    print(sql_object.generate_tubibricks_from_ddl(
+        sql_filepath="hive_metastore",
+        column_ids = x
+    ))
 
 
 
 
 if __name__ == '__main__':
+    get_metadata_sql()
+    gen_schema_yaml("/Users/jian.huang/temp/hive_metastore.tubidw.adserver_metrics_daily.ddl")
+    exit(0)
     get_schema_info()
     exit(0)
     # hist_temp("dev")
