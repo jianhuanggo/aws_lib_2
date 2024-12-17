@@ -73,7 +73,7 @@ def yaml_loads(file_content: str) -> Dict:
 
 def yaml_dump(file_content) -> str:
     try:
-        return yaml.dump(file_content)
+        return yaml.dump(file_content, sort_keys=False)
     except Exception as err:
         raise err
 
