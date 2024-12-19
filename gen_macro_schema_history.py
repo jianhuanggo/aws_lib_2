@@ -17,13 +17,14 @@ from _util import _util_file as _util_file_
 @click.option('--profile_name', required=True, type=str)
 @click.option('--output_filepath', required=True, type=str)
 def gen_macro_schema_history(database_name: str,
-                   schema_name: str,
+                             schema_name: str,
                    domain_name: str,
                    model_name: str,
                    table_def_filepath: str,
                    output_filepath: str,
                    profile_name: str = "default",
                    logger: Log = None):
+
     """ this script monitors databricks workflow job and restarts if necessary
 
     Args:
@@ -73,8 +74,6 @@ def gen_macro_schema_history(database_name: str,
     elif "OUTPUT_FILEPATH" in os.environ:
         _config.config["OUTPUT_FILEPATH"] = os.environ.get("OUTPUT_FILEPATH")
 
-
-
     _common_.info_logger(f"database_name: {_config.config.get('DATABASE_NAME')}")
     _common_.info_logger(f"schema_name: {_config.config.get('SCHEMA_NAME')}")
     _common_.info_logger(f"model_name: {_config.config.get('MODEL_NAME')}")
@@ -96,7 +95,6 @@ def gen_macro_schema_history(database_name: str,
         column_names=sql_object.extract_info_from_ddl(sql_text),
         output_filepath=output_filepath
     ))
-
 
     _common_.info_logger(f"end time:{datetime.now()}", logger=logger)
     return True

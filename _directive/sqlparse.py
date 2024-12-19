@@ -56,7 +56,7 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
         return columns
 
     @_common_.exception_handler
-    def generate_manifest_from_ddl(self,
+    def generate_schema_history_manifest_from_ddl(self,
                                    domain_name: str,
                                    table_name: str,
                                    output_filepath,
@@ -113,15 +113,45 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
 
 
     @_common_.exception_handler
-    def generate_model_yaml_from_ddl(self,
-                                   table_name: str,
-                                   table_description: str,
-                                   output_filepath: str = "",
-                                   column_names: List[str] = [],
-                                   column_key: List[str] = [],
-                                   not_null_columns: List[str] = [],
-                                   logger: Log = None) -> bool:
+    def generate_tubibricks_manifest_comment(self,
+                                             table_name: str,
+                                             table_description: str,
+                                             manifest_filepath: str,
+                                             output_filepath: str = "",
+                                             column_names: List[str] = [],
+                                             column_key: List[str] = [],
+                                             not_null_columns: List[str] = [],
+                                             logger: Log = None) -> bool:
+        """
+
+        Args:
+            table_name: table name
+            table_description: table description
+            manifest_filepath: manifest comment input file
+            output_filepath: output file path
+            column_names: a list of column names
+            column_key: column key
+            not_null_columns: not null column
+            logger:
+
+        Returns:
+
+        """
         from collections import defaultdict
+        from pprint import pprint
+
+        if _util_file_.is_file_exist(manifest_filepath):
+            current_manifest = _util_file_.yaml_load(manifest_filepath)
+        else:
+            current_manifest = {}
+        pprint(current_manifest)
+
+        lookup = defaultdict(lambda: defaultdict(dict))
+        for each_record in current_manifest.get("models", []):
+            lookup[each_record.get("name")]["description"] = each_record.get("description")
+            lookup[each_record.get("name")]["columns"] = each_record.get("columns")
+            # print([x for x in each_record])
+            # pprint(lookup)
 
         table_data = {}
         table_data["name"] = table_name
@@ -146,12 +176,26 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
 
         from pprint import pprint
 
-        pprint([dict(table_data)])
+        result = []
+
+        for tbl_name in lookup.keys():
+            if tbl_name == table_name:
+                result.append(table_data)
+            else:
+                result.append({**{"name": tbl_name}, **lookup[tbl_name]})
+        else:
+            result.append(table_data)
 
 
+        print(table_data)
+        print(result)
 
-        _util_file_.yaml_dump2("test100.yaml", {"version": 2, "models": [table_data]})
+        # exit(0)
+        #
+        # pprint([dict(table_data)])
 
+        # _util_file_.yaml_dump2("test100.yaml", {"version": 2, "models": [table_data]})
+        _util_file_.yaml_dump2(output_filepath, {"version": 2, "models": result})
         return True
 
     def extract_column_from_sql(self, filepath: str) -> List:

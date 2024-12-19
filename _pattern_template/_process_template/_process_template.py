@@ -30,6 +30,7 @@ def detect_template_type(filepath: str,
         try:
             return _util_file_.yaml_load(filepath)
         except Exception as err:
+            _common_.info_logger("Error!! Something wrong in the template type detection, please validate whether the template is a valid yaml file")
             return None
 
     def detect_json(filepath: str,
@@ -38,6 +39,7 @@ def detect_template_type(filepath: str,
             _util_file_.json_load(filepath)
             return _util_file_.json_load(filepath)
         except Exception as err:
+            _common_.info_logger("Error!! Something wrong in the template type detection, please validate whether the template is a valid yaml file")
             return None
 
     def detect_python_module(module_name: str,
