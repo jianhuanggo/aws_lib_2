@@ -470,7 +470,7 @@ def _get_redshift():
 
 
 def _get_spark():
-    from _api import _databricks
+    from _api import _databrickscluster
     _databricks.run2()
 
 
@@ -482,7 +482,7 @@ def _test_spark():
     print(api_object)
     exit(0)
 
-    from _api import _databricks
+    from _api import _databrickscluster
 
 
 def validation_sql():
@@ -745,13 +745,24 @@ def gen_schema_yaml(table_def_filepath: str):
     sql_text = _util_file_.identity_load_file(table_def_filepath)
 
     column_with_desc = []
+
+    from _knowledge_base import _knowledge_base_comment
+
+    kb_comment_inst = _knowledge_base_comment.KnowledgeBaseComment()
+    kb_comment_inst.load()
+
     for each_column in object_directive.extract_info_from_ddl(sql_text):
-        column_with_desc.append((each_column[0], each_column[1], each_column[0].replace("_", " ")))
+        comment = kb_comment_inst.query(each_column[0])
+        if comment:
+            column_with_desc.append((each_column[0], each_column[1], comment))
+        else:
+            kb_comment_inst.add(each_column[0], each_column[0].replace("_", " "))
+            column_with_desc.append((each_column[0], each_column[1], each_column[0].replace("_", " ")))
+
+    kb_comment_inst.save()
     print(column_with_desc)
 
-
-
-    object_directive.generate_model_yaml_from_ddl(
+    object_directive.generate_tubibricks_manifest_comment(
         table_name="adserver_metrics_daily",
         table_description="This aggregated table with the desired dimensions and metrics will speed up the querying and can be used in dashboards and also ad-hoc analysis",
         output_filepath="",
@@ -773,10 +784,15 @@ def get_metadata_sql(filepath: str):
         column_ids = x
     ))
 
-
+def test_local_llm():
+    from _api import _openai
+    inst = _openai.APIOpenAI()
+    inst.chat("just say hi")
 
 
 if __name__ == '__main__':
+    test_local_llm()
+    exit(0)
     get_metadata_sql()
     gen_schema_yaml("/Users/jian.huang/temp/hive_metastore.tubidw.adserver_metrics_daily.ddl")
     exit(0)

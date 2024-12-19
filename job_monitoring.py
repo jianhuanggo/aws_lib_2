@@ -43,10 +43,7 @@ def job_monitoring(model_name: str,
     # exit(0)
 
     print(_config.config)
-
     print(profile_name, job_name)
-
-
 
     monitor_object = _connect_.get_directive(object_name="databricks_sdk", profile_name=profile_name)
     _common_.info_logger(f"start time:{datetime.now()}")

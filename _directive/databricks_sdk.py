@@ -30,7 +30,6 @@ class JobsAPI:
 """
 from databricks.sdk import WorkspaceClient
 
-
 class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
     def __init__(self,
                  profile_name: str,
