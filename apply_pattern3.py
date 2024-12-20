@@ -12,7 +12,7 @@ from _config import config as _config_
 @click.option('--profile_name', required=True, type=str)
 @click.option('--development_env', required=False, type=str)
 @click.option('--dry_run', required=False, type=str)
-def apply_pattern2(pattern_template_filepath: str,
+def apply_pattern3(pattern_template_filepath: str,
                   dw_home: str,
                   profile_name: str = "default",
                   development_env: str = "",
@@ -35,8 +35,9 @@ def apply_pattern2(pattern_template_filepath: str,
     _common_.info_logger(f"start time:{datetime.now()}")
 
     from _pattern_template._process_template import _process_template
-
     _config = _config_.ConfigSingleton(profile_name=profile_name)
+    for var_name, var_value in os.environ.items():
+        _config.config[var_name] = var_value
 
     if dw_home:
         _config.config["DW_HOME"] = dw_home
@@ -71,5 +72,5 @@ def apply_pattern2(pattern_template_filepath: str,
     _common_.info_logger(f"end time:{datetime.now()}")
 
 if __name__ == '__main__':
-    apply_pattern2()
+    apply_pattern3()
 

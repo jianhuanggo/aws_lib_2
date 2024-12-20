@@ -39,6 +39,7 @@ def gen_tubibricks_manifest(model_name: str,
 
     """
 
+
     _config = _config_.ConfigSingleton(profile_name=profile_name)
 
     if model_name:
@@ -94,7 +95,9 @@ def gen_tubibricks_manifest(model_name: str,
     kb_comment_inst = _knowledge_base_comment.KnowledgeBaseComment()
     kb_comment_inst.load()
 
+
     for each_column in object_directive.extract_info_from_ddl(sql_text):
+
         comment = kb_comment_inst.query(each_column[0])
         if comment:
             column_with_desc.append((each_column[0], each_column[1], comment))
