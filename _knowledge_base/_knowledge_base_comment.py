@@ -17,7 +17,7 @@ class KnowledgeBaseComment:
 
     @_common_.exception_handler
     def query(self, key) -> list | None:
-        return self.knowledge_base.get(key)
+        return self.knowledge_base.get(key, [""])[0]
 
     @_common_.exception_handler
     def save(self) -> bool:
