@@ -1,7 +1,7 @@
 command_20:
   _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
   _command_:
-    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python run_databricks_query.py -profile_name {{ PROFILE_NAME }} --additional_where_clause 'date BETWEEN {{ START_TIME }} and {{ END_TIME }}' --job_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/history_load_job.json -wait_time_between_sql 10"
+    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python run_databricks_query.py -profile_name {{ PROFILE_NAME }} --additional_where_clause 'date BETWEEN "{{ START_TIME }}" and "{{ END_TIME }}"' --job_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/history_load_job.json -wait_time_between_sql 10"
 
 command_50:
   _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
