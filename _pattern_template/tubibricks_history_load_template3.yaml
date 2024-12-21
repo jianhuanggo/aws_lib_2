@@ -1,63 +1,12 @@
+command_20:
+  _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
+  _command_:
+    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python run_databricks_query.py -profile_name {{ PROFILE_NAME }} --additional_where_clause 'date BETWEEN {{ START_TIME }} and {{ END_TIME }}' --job_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/history_load_job.json -wait_time_between_sql 10"
+
 command_50:
+  _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
   _command_:
-    - mkdir -p {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/
-
-command_60:
-  _command_:
-    - mkdir -p /Users/jian.huang/projects/backup/{{ PROJECT_ID }}/{{ DEPLOYMENT_ENV }}
-
-command_70:
-  _ignore_error_: True
-  _command_:
-    - cp {{ DW_HOME }}/dw/tubibricks/models/{{ MODEL_DIR }}/{{ MODEL_NAME }}.sql /Users/jian.huang/projects/backup/{{ PROJECT_ID }}/{{ DEPLOYMENT_ENV }}
-
-command_80:
-  _ignore_error_: True
-  _command_:
-    - cp {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/* /Users/jian.huang/projects/backup/{{ PROJECT_ID }}/{{ DEPLOYMENT_ENV }}
-
-command_90:
-  _ignore_error_: True
-  _command_:
-    - cp {{ DW_HOME }}/dw/tubibricks/resources/{{ MODEL_NAME }}.yml /Users/jian.huang/projects/backup/{{ PROJECT_ID }}/{{ DEPLOYMENT_ENV }}
-
-command_100:
-  _command_:
-    - rm -rf {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/
-
-command_110:
-  _command_:
-    - cd {{ DW_HOME }}/dw
-
-command_120:
-  _working_dir_: "{{ DW_HOME }}/dw"
-  _command_:
-    - cd {{ DW_HOME }}/dw && git checkout {{ GITHUB_BRANCH }}
-
-
-command_130:
-  _command_:
-    - mkdir -p {{ DW_HOME }}/dw/tubibricks/models/{{ MODEL_DIR }}
-
-
-command_140:
-  _command_:
-    - cd {{ DW_HOME }}/dw/tubibricks/models/{{ MODEL_DIR }}
-
-
-command_150:
-  _working_dir_: "{{ DW_HOME }}/dw"
-  _timeout_: "7200"
-  _command_:
-    - cd {{ DW_HOME }}/dw && pipenv run workflow --project tubibricks --target {{ DEPLOYMENT_ENV }} --job_name {{ MODEL_NAME }} --command run --selectors '{{ MODEL_NAME }}' --start {{ START_DATE }} --end {{ END_DATE }} {{ TIME_INTERVAL }} --enabled_notifications false
-
-command_160:
-  _command_:
-    - echo {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/
-
-command_170:
-  _command_:
-    - echo "later"
+    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python tubi_enhance_notebook.py -profile_name {{ PROFILE_NAME }} --notebook_filepath {{ DW_HOME }}/dw/tubibricks/src --job_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/history_load_job.json --model_dir {{ MODEL_DIR }}"
 
 command_180:
   _working_dir_: "{{ DW_HOME }}/dw/tubibricks"
