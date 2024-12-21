@@ -6,6 +6,9 @@ import yaml
 from inspect import currentframe
 from typing import List, Dict, Tuple, Union, Any
 from logging import Logger as Log
+
+from yaml import Dumper
+
 from _common import _common as _common_
 import pandas as pd
 
@@ -91,6 +94,20 @@ def yaml_dump2(filepath: str, data: Any, logger: Log = None) -> None:
                              mode="error",
                              ignore_flag=False)
 
+def yaml_dump3(filepath: str, data: Any, logger: Log = None) -> None:
+    class NoAnchorDumper(yaml.Dumper):
+        def ignore_aliases(self, data):
+            return True
+    try:
+        with open(filepath, "w") as file:
+            file.write(yaml.dump(data, Dumper=NoAnchorDumper, default_flow_style=False, sort_keys=False))
+    except Exception as err:
+        _common_.error_logger(currentframe().f_code.co_name,
+                             err,
+                             logger=logger,
+                             mode="error",
+                             ignore_flag=False)
+
 def touch(filepath: str) -> Tuple[str, str]:
     with open(filepath, "w"):
         pass
@@ -100,6 +117,9 @@ def touch(filepath: str) -> Tuple[str, str]:
 def files_in_dir(dirpath: str) -> List:
     return [os.path.join(_dirpath, f) for (_dirpath, _, _filenames) in os.walk(dirpath) for f in _filenames]
 
+
+def dir_in_dir(dirpath: str) -> List:
+    return [os.path.join(_dirpath, d) for (_dirpath, _directory, _) in os.walk(dirpath) for d in _directory]
 
 def write_file(iden_fielpath: str, iden_data: str, iden_mode: str, logger: Log = None) -> None:
     try:
