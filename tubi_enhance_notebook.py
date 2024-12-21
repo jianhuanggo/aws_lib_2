@@ -16,12 +16,10 @@ from _util import _util_file as _util_file_
 @click.option('--profile_name', required=True, type=str)
 @click.option('--notebook_filepath', required=True, type=str)
 @click.option('--job_filepath', required=True, type=str)
-@click.option('--model_name', required=True, type=str)
 @click.option('--model_dir', required=True, type=str)
 def enhance_notebook(profile_name: str,
                      notebook_filepath: str,
                      job_filepath: str,
-                     model_name: str,
                      model_dir: str,
                      logger: Log = None):
 
@@ -58,11 +56,6 @@ def enhance_notebook(profile_name: str,
     elif "JOB_FILEPATH" in os.environ:
         _config.config["JOB_FILEPATH"] = os.environ.get("JOB_FILEPATH")
 
-    if model_name:
-        _config.config["MODEL_NAME"] = model_name
-    elif "MODEL_NAME" in os.environ:
-        _config.config["MODEL_NAME"] = os.environ.get("MODEL_NAME")
-
     if model_dir:
         _config.config["MODEL_DIR"] = model_dir
     elif "MODEL_DIR" in os.environ:
@@ -71,7 +64,6 @@ def enhance_notebook(profile_name: str,
     _common_.info_logger(f"profile_name: {profile_name}", logger=logger)
     _common_.info_logger(f"notebook_filepath: {notebook_filepath}", logger=logger)
     _common_.info_logger(f"job_filepath: {job_filepath}", logger=logger)
-    _common_.info_logger(f"model_name: {model_name}", logger=logger)
     _common_.info_logger(f"model_dir: {model_dir}", logger=logger)
 
     try:
