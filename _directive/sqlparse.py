@@ -195,7 +195,7 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
         # pprint([dict(table_data)])
 
         # _util_file_.yaml_dump2("test100.yaml", {"version": 2, "models": [table_data]})
-        _util_file_.yaml_dump2(output_filepath, {"version": 2, "models": result})
+        _util_file_.yaml_dump3(output_filepath, {"version": 2, "models": result})
         return True
 
     def extract_column_from_sql(self, filepath: str) -> List:
