@@ -65,6 +65,10 @@ def apply_pattern3(pattern_template_filepath: str,
     # exit(0)
     print(_config.config)
 
+    # print(f"{__file__} function {currentframe().f_code.co_name}")
+    # print("!!!", _config.config)
+    # exit(0)
+
     t_task = _process_template.process_template(config=_config, template_name=pattern_template_filepath)
     shell_runner = ShellRunner(profile_name=profile_name)
     execute_command_from_dag(shell_runner, t_task.tasks)

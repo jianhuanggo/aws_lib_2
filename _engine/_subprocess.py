@@ -697,7 +697,9 @@ class ShellRunner:
         env_vars: Dict = kwargs.get("env_vars", {})
         directive: Dict = kwargs.get("directive", {})
 
-        print("AAAA")
+        from inspect import currentframe
+        print(f"{__file__} function {currentframe().f_code.co_name}")
+        print("!!! environment variable", env_vars)
 
 
         # detect circular dependency in the graph

@@ -50,7 +50,8 @@ class ConfigSingleton:
             try:
                 _common_.info_logger(f"loading variables from profile name {_profile_name}...")
                 for _name, _val in _util_file_.yaml_load(config_loc).items():
-                    cls.config[_name] = _val
+                    if _name not in cls.config:
+                        cls.config[_name] = _val
             except Exception as err:
                 _common_.error_logger(currentframe().f_code.co_name,
                                       err,
