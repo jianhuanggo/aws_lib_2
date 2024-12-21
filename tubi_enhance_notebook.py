@@ -87,7 +87,8 @@ def enhance_notebook(profile_name: str,
                 if new_sql_content:
                     each_notebook["cells"][0]["source"] = new_sql_content
                     file_name, file_extension = os.path.splitext(each_file)
-                    _util_file_.json_dump(file_name + "_modifiled" + file_extension, each_notebook)
+                    # _util_file_.json_dump(file_name + "_modifiled" + file_extension, each_notebook)
+                    _util_file_.json_dump(each_file, each_notebook)
 
     except Exception as err:
         _common_.error_logger(currentframe().f_code.co_name,
