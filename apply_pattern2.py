@@ -114,10 +114,6 @@ def apply_pattern2(pattern_template_filepath: str,
     print(_config.config.get("DEPLOYMENT_ENV"))
     print(_config.config.get("DRY_RUN"))
 
-
-
-    # exit(0)
-
     print(_config.config)
 
 
