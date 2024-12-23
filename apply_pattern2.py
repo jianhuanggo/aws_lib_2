@@ -111,8 +111,12 @@ def apply_pattern2(pattern_template_filepath: str,
         _config.config["DRY_RUN"] = os.environ.get("DRY_RUN")
 
 
+    for env, value in dict(os.environ).items():
+        _config.config[env] = value
+
     print(_config.config.get("DEPLOYMENT_ENV"))
     print(_config.config.get("DRY_RUN"))
+    print(_config.config.get("PROJECT_ID"))
 
     print(_config.config)
 

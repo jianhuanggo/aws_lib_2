@@ -790,6 +790,9 @@ def test_local_llm():
     inst.chat("just say hi")
 
 
+
+
+
 if __name__ == '__main__':
     test_local_llm()
     exit(0)
