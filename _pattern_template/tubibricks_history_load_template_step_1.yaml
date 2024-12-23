@@ -1,3 +1,11 @@
+command_1:
+  _command_:
+    - cp {{ DW_HOME }}/dw/scripts/generate_notebooks.py /Users/jian.huang/projects/backup/script/
+
+command_3:
+  _command_:
+    - cp /Users/jian.huang/projects/backup/script/generate_notebooks.py.turn_off_notification {{ DW_HOME }}/dw/scripts/generate_notebooks.py
+
 command_10:
   _command_:
     - mkdir -p {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/
@@ -55,4 +63,8 @@ command_120:
   _command_:
     - echo {{ DW_HOME }}/dw/tubibricks/src/{{ MODEL_NAME }}/models/{{ MODEL_DIR }}/
 
+
+command_130:
+  _command_:
+    - cp /Users/jian.huang/projects/backup/script/generate_notebooks.py {{ DW_HOME }}/dw/scripts/generate_notebooks.py
 
