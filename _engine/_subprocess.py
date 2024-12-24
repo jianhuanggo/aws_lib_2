@@ -757,6 +757,8 @@ class ShellRunner:
             from _job_progress._job_progress import JobProgressSingleton
             _progress = JobProgressSingleton()
 
+
+
             ["__job_progress__"]
             if pr := _progress.data.get("__job_progress__"):
                 pr[_config_.config.get["RUNNER_JOB_ID"]][each_command.description] = True
