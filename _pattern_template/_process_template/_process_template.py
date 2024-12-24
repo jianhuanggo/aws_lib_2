@@ -1,5 +1,7 @@
 from inspect import currentframe
 from logging import Logger as Log
+from uuid import uuid4
+
 from _common import _common as _common_
 from typing import Dict, List, Union
 from types import ModuleType
@@ -156,8 +158,17 @@ def process_template(config: _config_.ConfigSingleton,
 
     t_task = _task.Task(description="tubi_history_load_flow")
     # print(template_content)
+    from _job_progress import _job_progress
+    progress = _job_progress.JobProgress()
+    _config.config["__job_progress__"] = progress
+    if not _config.config.get("RUNNER_JOB_ID"):
+        _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
 
     for command_num, commands in template_content.items():
+        if job_identifier := _config.config.get("RUNNER_JOB_ID") and (progress.progress.get(job_identifier, {}).get(command_num, False)):
+            _common_.info_logger(f"this task already completed successfully, skipping...")
+            continue
+
         _commands = _get_template.render(_util_file_.json_dumps(commands), _config.config).strip()
         _directives = get_directive(_commands)
         # print("@##", counter, _directives, _commands)

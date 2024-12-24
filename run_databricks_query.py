@@ -3,6 +3,7 @@ import os
 import click
 from inspect import currentframe
 from datetime import datetime
+from jinja2 import Template
 from time import sleep
 from typing import List
 from logging import Logger as Log
@@ -21,6 +22,7 @@ from _util import _util_file as _util_file_
 @click.option('--job_filepath', required=False, type=str)
 @click.option('--additional_where_clause', required=False, type=str)
 @click.option('--wait_time_between_sql', required=True, type=int)
+@click.option('--table_suffix', required=False, type=int)
 def databricks_query(profile_name: str,
                         host: str,
                         token: str,
@@ -29,6 +31,7 @@ def databricks_query(profile_name: str,
                         additional_where_clause: str,
                         job_filepath: str,
                         wait_time_between_sql: int,
+                        table_suffix: str,
                         logger: Log = None):
 
     """ this script monitors databricks workflow job and restarts if necessary
@@ -42,6 +45,7 @@ def databricks_query(profile_name: str,
         wait_time_between_sql: if there are multiple SQL, wait time between them
         profile_name: profile, contains environment variables regarding to databricks environment (config_dev, config_prod, config_stage)
         job_filepath: job filepath
+        table_suffix: adding table suffix primary serve as identifier
         logger: logging object
 
     Returns:
@@ -96,6 +100,11 @@ def databricks_query(profile_name: str,
     elif "TIME_INTERVAL" in os.environ:
         _config.config["WAIT_TIME_BETWEEN_SQL"] = os.environ.get("WAIT_TIME_BETWEEN_SQL")
 
+    if table_suffix:
+        _config.config["TABLE_SUFFIX"] = table_suffix
+    elif "TABLE_SUFFIX" in os.environ:
+        _config.config["TABLE_SUFFIX"] = os.environ.get("TABLE_SUFFIX")
+
     if query_string and job_filepath:
         _common_.error_logger(currentframe().f_code.co_name,
                               f"Error, both query_string and job_filepath is specified, please only specify one of them",
@@ -113,7 +122,9 @@ def databricks_query(profile_name: str,
         object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
 
         for each_query in query_strings:
-            each_query = each_query + " " + additional_where_clause if "where" in each_query.lower() \
+            sql_template = Template(each_query)
+            sql_query = sql_template.render({"TABLE_SUFFIX": table_suffix})
+            each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
                 else each_query + "\nwhere " + additional_where_clause
             print(each_query)
 
