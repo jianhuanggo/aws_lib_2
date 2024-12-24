@@ -4,6 +4,20 @@ from logging import Logger as Log
 from _common import _common as _common_
 from _config import config as _config_
 from _util import _util_file as _util_file_
+from collections import defaultdict
+
+
+class JobProgressSingleton:
+    def __new__(cls):
+        if not hasattr(cls, "instance"):
+            cls.data = defaultdict(str)
+            cls.instance = super(JobProgressSingleton, cls).__new__(cls)
+            """
+
+            Args:
+                config_loc: default configuration file location
+            """
+        return cls.instance
 
 class JobProgress:
     def __init__(self):
