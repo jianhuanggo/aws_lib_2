@@ -609,6 +609,9 @@ class ShellRunner:
                     error_handle=error_handle,
                     ignore_errors=ignore_errors
                 )
+
+
+
         return result
 
         # run the command
@@ -673,7 +676,7 @@ class ShellRunner:
         # return process, error_message
 
     @_common_.exception_handler
-    def run_command_from_dag(self, profile_name: str, dag, *args, **kwargs) -> None:
+    def run_command_from_dag(self, profile_name: str, dag, logger: Log = None, *args, **kwargs, ) -> None:
         """ facilitate  shell commands and
 
         Args:
@@ -700,6 +703,8 @@ class ShellRunner:
         from inspect import currentframe
         print(f"{__file__} function {currentframe().f_code.co_name}")
         print("!!! environment variable", env_vars)
+        _config = _config_.ConfigSingleton()
+        _config_.config.get("job_progress")
 
 
         # detect circular dependency in the graph
@@ -709,6 +714,7 @@ class ShellRunner:
             # print(each_command.environment_variables, env_vars)
             # print(each_command.metadata, directive)
             environment_variable = {**each_command.environment_variables, **env_vars}
+            print(each_command.description)
             # print(environment_variable)
             # print(each_command.metadata)
             # print(each_command.command)
@@ -731,6 +737,22 @@ class ShellRunner:
                              shell_mode=shell_mode,
                              env_vars=environment_variable,
                              directive=each_command.metadata)
+
+            # _config.config["__job_progress__"] = progress
+            # if not _config.config.get("RUNNER_JOB_ID"):
+            #     _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
+
+            print(each_command.description)
+            if pr := _config_.config.get("__job_progress__"):
+                pr[_config_.config.get["RUNNER_JOB_ID"]][each_command.description] = True
+            else:
+                _common_.error_logger(currentframe().f_code.co_name,
+                                      f"internal error!! progress object is not found",
+                                      logger=logger,
+                                      mode="error",
+                                      ignore_flag=False)
+
+
 
             sleep(env_vars.get("COMMAND_INT_WAIT", __WAIT_TIME__))
 

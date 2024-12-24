@@ -11,19 +11,16 @@ from _config import config as _config_
 @click.option('--dw_home', required=True, type=str)
 @click.option('--profile_name', required=True, type=str)
 @click.option('--development_env', required=False, type=str)
+@click.option('--job_identifier', required=True, type=str)
 @click.option('--dry_run', required=False, type=str)
 def apply_pattern3(pattern_template_filepath: str,
                   dw_home: str,
+                  job_identifier: str,
                   profile_name: str = "default",
                   development_env: str = "",
                   dry_run: bool = False,
                   logger: Log = None):
 
-    _common_.info_logger(f"pattern_template_filepath: {pattern_template_filepath}")
-    _common_.info_logger(f"dw_home: {dw_home}")
-    _common_.info_logger(f"profile_name: {profile_name}")
-    _common_.info_logger(f"development_env: {development_env}")
-    _common_.info_logger(f"dry_run: {dry_run}")
 
     error_handle = _error_handling.ErrorHandlingSingleton(profile_name=profile_name, error_handler="subprocess")
 
@@ -39,15 +36,25 @@ def apply_pattern3(pattern_template_filepath: str,
     for var_name, var_value in os.environ.items():
         _config.config[var_name] = var_value
 
+    if pattern_template_filepath:
+        _config.config["PATTERN_TEMPLATE_FILEPATH"] = pattern_template_filepath
+    elif "PATTERN_TEMPLATE_FILEPATH" in os.environ:
+        _config.config["PATTERN_TEMPLATE_FILEPATH"] = os.environ.get("PATTERN_TEMPLATE_FILEPATH")
+
     if dw_home:
         _config.config["DW_HOME"] = dw_home
     elif "DW_HOME" in os.environ:
         _config.config["DW_HOME"] = os.environ.get("DW_HOME")
 
-    if dw_home:
+    if profile_name:
         _config.config["PROFILE_NAME"] = profile_name
     elif "PROFILE_NAME" in os.environ:
         _config.config["PROFILE_NAME"] = os.environ.get("PROFILE_NAME")
+
+    if job_identifier:
+        _config.config["JOB_IDENTIFIER"] = job_identifier
+    elif "JOB_IDENTIFIER" in os.environ:
+        _config.config["JOB_IDENTIFIER"] = os.environ.get("JOB_IDENTIFIER")
 
     if development_env:
         _config.config["DEPLOYMENT_ENV"] = development_env
@@ -62,9 +69,13 @@ def apply_pattern3(pattern_template_filepath: str,
     for env, value in dict(os.environ).items():
         _config.config[env] = value
 
-    print(_config.config.get("DEPLOYMENT_ENV"))
-    print(_config.config.get("DRY_RUN"))
-    print(_config.config.get("PROJECT_ID"))
+    _common_.info_logger(f"pattern_template_filepath: {_config.config.get('PATTERN_TEMPLATE_FILEPATH')}")
+    _common_.info_logger(f"dw_home: {_config.config.get('DW_HOME')}")
+    _common_.info_logger(f"profile_name: {_config.config.get('PROFILE_NAME')}")
+    _common_.info_logger(f"job_identifier: {_config.config.get('JOB_IDENTIFIER')}")
+    _common_.info_logger(f"development_env: {_config.config.get('DEPLOYMENT_ENV')}")
+    _common_.info_logger(f"dry_run: {_config.config.get('DRY_RUN')}")
+
 
     # exit(0)
     print(_config.config)
