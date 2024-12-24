@@ -743,7 +743,22 @@ class ShellRunner:
             #     _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
 
             print(each_command.description)
-            if pr := _config_.config.get("__job_progress__"):
+
+            # _progress.data["__job_progress__"] = _job_progress.JobProgress()
+            #
+            # if not _config.config.get("RUNNER_JOB_ID"):
+            #     _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
+            #
+            # for command_num, commands in template_content.items():
+            #     if job_identifier := _config.config.get("RUNNER_JOB_ID") and (
+            #     _progress.data["__job_progress__"].get(job_identifier, {}).get(command_num, False)):
+            #         _common_.info_logger(f"this task already completed successfully, skipping...")
+            #         continue
+            from _job_progress._job_progress import JobProgressSingleton
+            _progress = JobProgressSingleton()
+
+            ["__job_progress__"]
+            if pr := _progress.data.get("__job_progress__"):
                 pr[_config_.config.get["RUNNER_JOB_ID"]][each_command.description] = True
             else:
                 _common_.error_logger(currentframe().f_code.co_name,

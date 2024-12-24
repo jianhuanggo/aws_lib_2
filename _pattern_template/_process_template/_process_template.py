@@ -112,6 +112,8 @@ def process_template(config: _config_.ConfigSingleton,
 
     # steps = _get_template.render(_inspect_module.get_source(template_name), _config.config)
     print("AAAA")
+
+
     from pprint import pprint
     @_common_.exception_handler
     def get_directive(command: str) -> Dict[str, str]:
@@ -159,13 +161,15 @@ def process_template(config: _config_.ConfigSingleton,
     t_task = _task.Task(description="tubi_history_load_flow")
     # print(template_content)
     from _job_progress import _job_progress
-    progress = _job_progress.JobProgress()
-    _config.config["__job_progress__"] = progress
+    _progress = _job_progress.JobProgressSingleton()
+
+    _progress.data["__job_progress__"] =_job_progress.JobProgress()
+
     if not _config.config.get("RUNNER_JOB_ID"):
         _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
 
     for command_num, commands in template_content.items():
-        if job_identifier := _config.config.get("RUNNER_JOB_ID") and (progress.progress.get(job_identifier, {}).get(command_num, False)):
+        if job_identifier := _config.config.get("RUNNER_JOB_ID") and (_progress.data["__job_progress__"].get(job_identifier, {}).get(command_num, False)):
             _common_.info_logger(f"this task already completed successfully, skipping...")
             continue
 
