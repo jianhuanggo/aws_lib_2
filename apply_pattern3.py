@@ -59,8 +59,12 @@ def apply_pattern3(pattern_template_filepath: str,
     elif "DRY_RUN" in os.environ:
         _config.config["DRY_RUN"] = os.environ.get("DRY_RUN")
 
+    for env, value in dict(os.environ).items():
+        _config.config[env] = value
+
     print(_config.config.get("DEPLOYMENT_ENV"))
     print(_config.config.get("DRY_RUN"))
+    print(_config.config.get("PROJECT_ID"))
 
     # exit(0)
     print(_config.config)
