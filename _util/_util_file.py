@@ -203,6 +203,13 @@ def detect_path_type(filepath: str) -> str:
     else:
         return "UNKNOWN"
 
+def is_file_empty(filepath: str) -> bool:
+    if os.path.getsize(filepath) == 0: return True
+    else:
+        with open(filepath, "r") as file:
+            content = file.read().strip()
+            if not content: return True
+    return False
 
 
 

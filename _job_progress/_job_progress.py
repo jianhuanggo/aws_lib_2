@@ -31,7 +31,7 @@ class JobProgress:
             _dirpath, _filepath = path.split(default_loc)
             from _util import _util_directory as _util_dir_
             _util_dir_.create_directory(_dirpath)
-            if _util_file_.is_file_exist(default_loc):
+            if _util_file_.is_file_exist(default_loc) and not _util_file_.is_file_empty(default_loc):
                 for job_identifier, value in _util_file_.json_load(default_loc).items():
                     for command_num, status in value.items():
                         if job_identifier not in self.progress:
