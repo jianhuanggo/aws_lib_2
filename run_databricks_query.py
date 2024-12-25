@@ -127,10 +127,11 @@ def databricks_query(profile_name: str,
             if _config.config.get("TABLE_SUFFIX"):
                 sql_template = Template(each_query)
                 sql_query = sql_template.render({"TABLE_SUFFIX": _config.config["TABLE_SUFFIX"]})
+
             else:
                 sql_query = each_query
             each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
-                else each_query + "\nwhere " + additional_where_clause
+                else sql_query + "\nwhere " + additional_where_clause
             print(each_query)
 
             _common_.info_logger(object_api_databrick.query(each_query, ignore_error_flg=False), logger=logger)
