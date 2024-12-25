@@ -165,11 +165,11 @@ def process_template(config: _config_.ConfigSingleton,
 
     _progress.data["__job_progress__"] =_job_progress.JobProgress()
 
-    if not _config.config.get("RUNNER_JOB_ID"):
-        _config.config["RUNNER_JOB_ID"] = uuid4().hex[:10]
+    if not _config.config.get("JOB_IDENTIFIER"):
+        _config.config["JOB_IDENTIFIER"] = uuid4().hex[:10]
 
     for command_num, commands in template_content.items():
-        if (job_identifier := _config.config.get("RUNNER_JOB_ID")) and (_progress.data["__job_progress__"].progress.get(job_identifier, {}).get(command_num, False)):
+        if (job_identifier := _config.config.get("JOB_IDENTIFIER")) and (_progress.data["__job_progress__"].progress.get(job_identifier, {}).get(command_num, False)):
             _common_.info_logger(f"this task already completed successfully, skipping...")
             continue
 
