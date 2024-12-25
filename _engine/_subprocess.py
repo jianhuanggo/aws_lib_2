@@ -758,10 +758,10 @@ class ShellRunner:
             _progress = JobProgressSingleton()
 
             if pr := _progress.data.get("__job_progress__"):
-                if _config.config.get("RUNNER_JOB_ID") in pr.progress:
-                    pr.progress[_config.config.get("RUNNER_JOB_ID")][each_command.description] = True
+                if _config.config.get("JOB_IDENTIFIER") in pr.progress:
+                    pr.progress[_config.config.get("JOB_IDENTIFIER")][each_command.description] = True
                 else:
-                    pr.progress[_config.config.get("RUNNER_JOB_ID")] = {each_command.description: True}
+                    pr.progress[_config.config.get("JOB_IDENTIFIER")] = {each_command.description: True}
                 _util_file_.json_dump(_config.config.get("JOB_PROGRESS_DEFAULT_LOC"), pr.progress)
             else:
                 _common_.error_logger(currentframe().f_code.co_name,
