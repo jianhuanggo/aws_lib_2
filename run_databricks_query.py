@@ -22,7 +22,7 @@ from _util import _util_file as _util_file_
 @click.option('--job_filepath', required=False, type=str)
 @click.option('--additional_where_clause', required=False, type=str)
 @click.option('--wait_time_between_sql', required=True, type=int)
-@click.option('--table_suffix', required=False, type=int)
+@click.option('--table_suffix', required=False, type=str)
 def databricks_query(profile_name: str,
                         host: str,
                         token: str,
