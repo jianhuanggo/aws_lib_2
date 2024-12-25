@@ -704,7 +704,6 @@ class ShellRunner:
         print(f"{__file__} function {currentframe().f_code.co_name}")
         print("!!! environment variable", env_vars)
         _config = _config_.ConfigSingleton()
-        _config_.config.get("job_progress")
 
 
         # detect circular dependency in the graph
@@ -762,6 +761,7 @@ class ShellRunner:
             ["__job_progress__"]
             if pr := _progress.data.get("__job_progress__"):
                 pr[_config_.config.get["RUNNER_JOB_ID"]][each_command.description] = True
+                _util_file_.json_dump(_config.config.get("JOB_PROGRESS_DEFAULT_LOC"), pr)
             else:
                 _common_.error_logger(currentframe().f_code.co_name,
                                       f"internal error!! progress object is not found",
