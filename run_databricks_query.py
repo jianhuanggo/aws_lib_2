@@ -118,12 +118,17 @@ def databricks_query(profile_name: str,
         elif job_filepath:
             query_string = _util_file_.json_load(job_filepath).get("query_string")
 
+        print(_config.config.get("TABLE_SUFFIX"))
+
         query_strings: List = [query_string] if isinstance(query_string, str) else query_string
         object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
 
         for each_query in query_strings:
-            sql_template = Template(each_query)
-            sql_query = sql_template.render({"TABLE_SUFFIX": table_suffix})
+            if _config.config.get("TABLE_SUFFIX"):
+                sql_template = Template(each_query)
+                sql_query = sql_template.render({"TABLE_SUFFIX": _config.config["TABLE_SUFFIX"]})
+            else:
+                sql_query = each_query
             each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
                 else each_query + "\nwhere " + additional_where_clause
             print(each_query)
