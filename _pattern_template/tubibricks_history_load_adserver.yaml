@@ -1,4 +1,5 @@
 command_30:
   _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
   _command_:
-    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python run_databricks_query.py --profile_name {{ PROFILE_NAME }}  --query_string \"create or replace table hive_metastore.tubidw_dev.z_hl_807266_adserver_bid_events_{{ START_DATE }}_{{ END_DATE }} as select * from hive_metastore.datalake.adserver_bid_events where TO_DATE(date, \"yyyy-MM-dd\") >= DATE_TRUNC(\"day\", TO_DATE('{{ START_DATE }}', \"yyyy-MM-dd\")) AND TO_DATE(date, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('{{ END_DATE }}', \"yyyy-MM-dd\"))\" --wait_time_between_sql 10 --start_date \"2021-08-01\" --end_date \"2021-10-01\""
+    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python run_databricks_query_hl.py --profile_name {{ PROFILE_NAME }}  --query_string \"create or replace table hive_metastore.tubidw_dev.z_hl_807266_adserver_bid_events_{{ START_DATE }}_{{ END_DATE }} as select * from hive_metastore.datalake.adserver_bid_events where TO_DATE(date, \"yyyy-MM-dd\") >= DATE_TRUNC(\"day\", TO_DATE('{{ START_DATE }}', \"yyyy-MM-dd\")) AND TO_DATE(date, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('{{ END_DATE }}', \"yyyy-MM-dd\"))\" --wait_time_between_sql 10 --start_date \"2021-08-01\" --end_date \"2021-10-01\""
+
