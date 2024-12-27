@@ -816,14 +816,14 @@ if __name__ == '__main__':
                              ["ds"],
                              ["_id", "ds"],
                              ["ds"],
-                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC(\"day\", TO_DATE('2024-08-01', \"yyyy-MM-dd\")) AND TO_DATE(ds, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('2024-08-08', \"yyyy-MM-dd\"))"))
+                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC('day', TO_DATE('2024-08-01', 'yyyy-MM-dd')) AND TO_DATE(ds, 'yyyy-MM-dd') < DATE_TRUNC('day', TO_DATE('2024-08-08', 'yyyy-MM-dd'))"))
     exit(0)
     print(gen_validation_sql("hive_metastore.tubidw.revenue_bydevice_daily",
                              "hive_metastore.tubidw_dev.revenue_bydevice_daily",
                              ["ds"],
                              ["_id", "ds"],
                              ["ds"],
-                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC(\"day\", TO_DATE('2024-09-01', \"yyyy-MM-dd\")) AND TO_DATE(ds, \"yyyy-MM-dd\") < DATE_TRUNC(\"day\", TO_DATE('2024-11-15', \"yyyy-MM-dd\"))"))
+                             "where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC('day', TO_DATE('2024-09-01', 'yyyy-MM-dd')) AND TO_DATE(ds, 'yyyy-MM-dd') < DATE_TRUNC('day', TO_DATE('2024-11-15', 'yyyy-MM-dd'))"))
     exit(0)
 
     print(random("tubidw.retention_sketch_monthly_byplatform_bycountry"))
