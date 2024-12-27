@@ -128,8 +128,7 @@ def databricks_query(profile_name: str,
                               ignore_flag=False)
     try:
         if query_string:
-            query_string = query_string + " " + additional_where_clause if "where" in query_string.lower() \
-                else query_string + "\nwhere " + additional_where_clause
+            query_string = query_string
         elif job_filepath:
             query_string = _util_file_.json_load(job_filepath).get("query_string")
 
@@ -139,8 +138,10 @@ def databricks_query(profile_name: str,
         object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
 
         for each_query in query_strings:
+            print("AAAA", each_query)
             if _config.config.get("TABLE_SUFFIX") or _config.config.get("START_DATE") or _config.config.get("END_DATE"):
                 sql_template = Template(each_query)
+                print("AAAA")
                 sql_query = sql_template.render({"TABLE_SUFFIX": _config.config["TABLE_SUFFIX"],
                                                  "START_DATE": _config.config["START_DATE"],
                                                  "END_DATE": _config.config["END_DATE"]
@@ -150,7 +151,7 @@ def databricks_query(profile_name: str,
                 sql_query = each_query
             each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
                 else sql_query + "\nwhere " + additional_where_clause
-            print(each_query)
+            print("!!!", each_query)
             exit(0)
 
             _common_.info_logger(object_api_databrick.query(each_query, ignore_error_flg=False), logger=logger)
