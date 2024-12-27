@@ -120,6 +120,8 @@ def databricks_query(profile_name: str,
     elif "END_DATE" in os.environ:
         _config.config["END_DATE"] = os.environ.get("END_DATE")
 
+    print("@@@@", query_string)
+
     if query_string and job_filepath:
         _common_.error_logger(currentframe().f_code.co_name,
                               f"Error, both query_string and job_filepath is specified, please only specify one of them",
