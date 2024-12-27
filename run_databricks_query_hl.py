@@ -151,8 +151,11 @@ def databricks_query(profile_name: str,
 
             else:
                 sql_query = each_query
-            each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
-                else sql_query + "\nwhere " + additional_where_clause
+            if additional_where_clause:
+                each_query = sql_query + " " + additional_where_clause if "where" in each_query.lower() \
+                    else sql_query + "\nwhere " + additional_where_clause
+            else:
+                each_query = sql_query
             print("!!!", each_query)
             exit(0)
 
