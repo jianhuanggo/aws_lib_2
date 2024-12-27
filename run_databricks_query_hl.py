@@ -120,7 +120,6 @@ def databricks_query(profile_name: str,
     elif "END_DATE" in os.environ:
         _config.config["END_DATE"] = os.environ.get("END_DATE")
 
-    print("@@@@", query_string)
 
     if query_string and job_filepath:
         _common_.error_logger(currentframe().f_code.co_name,
@@ -140,7 +139,6 @@ def databricks_query(profile_name: str,
         object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
 
         for each_query in query_strings:
-            print("AAAA", each_query)
             if _config.config.get("TABLE_SUFFIX") or _config.config.get("START_DATE") or _config.config.get("END_DATE"):
                 sql_template = Template(each_query)
                 print("AAAA")
@@ -156,8 +154,6 @@ def databricks_query(profile_name: str,
                     else sql_query + "\nwhere " + additional_where_clause
             else:
                 each_query = sql_query
-            print("!!!", each_query)
-            exit(0)
 
             _common_.info_logger(object_api_databrick.query(each_query, ignore_error_flg=False), logger=logger)
             sleep(wait_time_between_sql)
