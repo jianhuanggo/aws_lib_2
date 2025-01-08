@@ -173,26 +173,16 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
             else:
                 table_data["columns"].append(column_info)
 
-
-        from pprint import pprint
-
         result = []
 
-        for tbl_name in lookup.keys():
-            if tbl_name == table_name:
-                result.append(table_data)
-            else:
-                result.append({**{"name": tbl_name}, **lookup[tbl_name]})
-        else:
+        if len(lookup.keys()) == 0:
             result.append(table_data)
-
-
-        print(table_data)
-        print(result)
-
-        # exit(0)
-        #
-        # pprint([dict(table_data)])
+        else:
+            for tbl_name in lookup.keys():
+                if tbl_name == table_name:
+                    result.append(table_data)
+                else:
+                    result.append({**{"name": tbl_name}, **lookup[tbl_name]})
 
         # _util_file_.yaml_dump2("test100.yaml", {"version": 2, "models": [table_data]})
         _util_file_.yaml_dump3(output_filepath, {"version": 2, "models": result})
