@@ -12,7 +12,10 @@ class KnowledgeBaseComment:
 
     @_common_.exception_handler
     def add(self, key, value) -> bool:
-        self.knowledge_base[key].append(value)
+        if key not in self._knowledge_base:
+            self.knowledge_base[key] = [value]
+        else:
+            self.knowledge_base[key].append(value)
         return True
 
     @_common_.exception_handler
