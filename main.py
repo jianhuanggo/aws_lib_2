@@ -790,10 +790,9 @@ def test_local_llm():
     inst.chat("just say hi")
 
 
-
-
-
 if __name__ == '__main__':
+
+    exit(0)
     test_local_llm()
     exit(0)
     get_metadata_sql()
