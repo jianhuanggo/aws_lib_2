@@ -789,8 +789,275 @@ def test_local_llm():
     inst = _openai.APIOpenAI()
     inst.chat("just say hi")
 
+def p():
+    string = """
+    CREATE TABLE hive_metastore.datalake.video_session (
+  device_hash_num INT,
+  device_id STRING,
+  user_id INT,
+  platform STRING,
+  country STRING,
+  city STRING,
+  model STRING,
+  app_version STRING,
+  start_ts TIMESTAMP,
+  end_ts TIMESTAMP,
+  start_ts_pst TIMESTAMP,
+  end_ts_pst TIMESTAMP,
+  first_pp_ts TIMESTAMP,
+  last_pp_ts TIMESTAMP,
+  content_id INT,
+  series_id INT,
+  content_type STRING,
+  tvt_millisec INT,
+  autoplay_tvt_millisec INT,
+  non_autoplay_tvt_millisec INT,
+  fullscreen_tvt_millisec INT,
+  smallscreen_tvt_millisec INT,
+  dma STRING,
+  region STRING,
+  timezone STRING,
+  pause_total_count INT,
+  fullscreen_total_count INT,
+  quality_total_count INT,
+  autoplay_dismiss BOOLEAN,
+  autoplay_container_scroll_count INT,
+  seek_total_count INT,
+  subtitles_on_total_count INT,
+  subtitles_off_total_count INT,
+  bookmark_on_total_count INT,
+  bookmark_off_total_count INT,
+  ad_break_total_count INT,
+  ad_impression_total_count INT,
+  primary_source STRING,
+  secondary_source STRING,
+  source_pos_row INT,
+  source_pos_col INT,
+  date DATE,
+  hs STRING,
+  video_id INT,
+  source_device_id STRING,
+  source_platform STRING,
+  inapp_pip_tvt_millisec INT,
+  video_in_grid_tvt_millisec INT,
+  banner_tvt_millisec INT,
+  external_preview_tvt_millisec INT,
+  postal_code STRING,
+  mobile_screen_tvt_landscape INT,
+  mobile_screen_tvt_portrait INT,
+  page_source STRING,
+  container_slug STRING,
+  component_source STRING,
+  playback_source STRING,
+  content_mode STRING,
+  pip_tvt_millisec INT,
+  user_session_id STRING,
+  video_session_id STRING,
+  attribution_type STRING,
+  attribution_campaign STRING,
+  attribution_medium STRING,
+  attribution_source STRING,
+  attribution_content STRING)
+    """
+    x, y = string.find("("), string.rfind(")")
+    result = []
+    for each_line in string[x:y + 1].split("\n"):
+        result.append(each_line.split()[0])
+    return sorted(result)
+
+
+def p2():
+    string = """
+    CREATE TABLE hive_metastore.datalake.scenes_video_session (
+  user_session_id STRING,
+  scenes_video_session_id STRING,
+  device_id STRING,
+  device_hash_num INT,
+  user_id INT,
+  platform STRING,
+  country STRING,
+  city STRING,
+  model STRING,
+  app_version STRING,
+  dma STRING,
+  region STRING,
+  timezone STRING,
+  postal_code STRING,
+  start_ts TIMESTAMP,
+  end_ts TIMESTAMP,
+  start_ts_pst TIMESTAMP,
+  end_ts_pst TIMESTAMP,
+  video_id INT,
+  series_id INT,
+  scene_id INT,
+  tvt_millisec INT,
+  is_liked BOOLEAN,
+  is_bookmarked BOOLEAN,
+  is_converted BOOLEAN,
+  is_details_viewed BOOLEAN,
+  is_finished BOOLEAN,
+  pause_total_count INT,
+  seek_total_count INT,
+  horizontal_location INT,
+  vertical_location INT,
+  date DATE,
+  hs STRING)
+    """
+    x, y = string.find("("), string.rfind(")")
+    result = []
+    for each_line in string[x:y + 1].split("\n"):
+        result.append(each_line.split()[0])
+    return sorted(result)
+
+def p_combb():
+    from collections import Counter
+    data1 = Counter(p())
+    data2 = Counter(p2())
+
+    data_comb = data1 + data2
+
+    common_fields = [field for field, freq in data_comb.items() if freq == 2]
+
+    data1_f = set(data1.keys()) ^ set(common_fields)
+    data2_f = set(data2.keys()) ^ set(common_fields)
+
+    print(common_fields)
+    print(data1_f)
+    print(data2_f)
+
+    result = []
+    max_length = max(list(map(len, data1_f)))
+
+    for field in common_fields:
+        result.append(field + "," + field)
+
+
+    for field in data1_f:
+        result.append(field + ", ")
+
+    for field in data2_f:
+        result.append("  ," + field)
+
+    print("\n".join(result))
+
+def p3():
+    string ="""
+
+    CREATE TABLE hive_metastore.datalake.user_session (
+      device_hash_num INT,
+      device_id STRING,
+      user_id INT,
+      platform STRING,
+      country STRING,
+      city STRING,
+      model STRING,
+      app_version STRING,
+      sessionnum INT,
+      start_ts TIMESTAMP,
+      end_ts TIMESTAMP,
+      start_ts_pst TIMESTAMP,
+      end_ts_pst TIMESTAMP,
+      tvt_millisec INT,
+      movie_tvt_millisec INT,
+      series_tvt_millisec INT,
+      state_type STRING,
+      attribution_type STRING,
+      attribution_campaign STRING,
+      attribution_medium STRING,
+      attribution_source STRING,
+      attribution_content STRING,
+      dma STRING,
+      region STRING,
+      last_event_pp_boolean BOOLEAN,
+      last_pp_ts TIMESTAMP,
+      last_pp_cid INT,
+      last_pp_type STRING,
+      timezone STRING,
+      view_total_count INT,
+      view_distinct_count INT,
+      episode_view_total_count INT,
+      episode_view_distinct_count INT,
+      movie_view_total_count INT,
+      movie_view_distinct_count INT,
+      date DATE,
+      hs STRING,
+      live_tvt_millisec INT,
+      live_view_total_count INT,
+      live_view_distinct_count INT,
+      user_session_id STRING)
+    """
+    x, y = string.find("("), string.rfind(")")
+    result = []
+    for each_line in string[x:y + 1].split("\n"):
+        result.append(each_line.split()[0])
+    return sorted(result)
+
+
+
+def a():
+    TEXT="""max(app_version
+,max(city
+,max(country
+,max(date
+,max(device_hash_num
+,max(device_id
+,max(dma
+,max(end_ts
+,max(end_ts_pst
+,max(hs
+,max(model
+,max(platform
+,max(region
+,max(start_ts
+,max(start_ts_pst
+,max(timezone
+,max(tvt_millisec
+,max(user_id
+,max(user_session_id
+,max(view_distinct_count
+,max(view_total_count
+,max(series_tvt_millisec
+,max(sessionnum
+,max(state_type
+,max(episode_view_distinct_count
+,max(episode_view_total_count
+,max(attribution_campaign
+,max(attribution_content
+,max(attribution_medium
+,max(attribution_source
+,max(attribution_type
+,max(last_event_pp_boolean
+,max(last_pp_cid
+,max(last_pp_ts
+,max(last_pp_type
+,max(live_tvt_millisec
+,max(live_view_distinct_count
+,max(live_view_total_count
+,max(movie_tvt_millisec
+,max(movie_view_distinct_count
+,max(movie_view_total_count
+"""
+    result = ""
+    for lines in TEXT.split("\n"):
+        if not lines: continue
+        first_p, second_p= lines.split('(')
+        result += first_p + "(" + "t1." + second_p + ") as " + lines[lines.find("(") + 1:] + "\n"
+    print(result)
+
+
 
 if __name__ == '__main__':
+    a()
+    exit(0)
+    print("\n".join(p3()))
+
+    exit(0)
+    p_combb()
+    exit(0)
+    print("\n".join(p2()))
+
+    exit(0)
+    print("\n".join(p()))
 
     exit(0)
     test_local_llm()
