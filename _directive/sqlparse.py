@@ -52,7 +52,11 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
                 column_type = match.group(2)
                 columns.append((column_name, column_type))
             else:
-                _common_.error_logger(f"skip unsupported column definition {col_def}...", logger=logger)
+                _common_.error_logger(currentframe().f_code.co_name,
+                                      f"skip unsupported column definition {col_def}...",
+                                      logger=logger,
+                                      mode="error",
+                                      ignore_flag=False)
         return columns
 
     @_common_.exception_handler
