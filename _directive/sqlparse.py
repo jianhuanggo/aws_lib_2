@@ -61,9 +61,22 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
                                    table_name: str,
                                    output_filepath,
                                    column_names: List[str],
-                                   database_name: str = "",
                                    schema_name: str = "",
                                    logger: Log = None) -> bool:
+        """ generate schema history manifest from DDL
+
+        Args:
+            domain_name: domain name
+            table_name: table name
+            output_filepath: output file path
+            column_names: column names
+            schema_name: schema name
+            logger: logger
+
+        Returns:
+            return true if successful otherwise false
+
+        """
 
 
         template = Template(_util_file_.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/schema_redshift.sql"))

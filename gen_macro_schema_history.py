@@ -9,15 +9,13 @@ from _connect import _connect as _connect_
 from _util import _util_file as _util_file_
 
 @click.command()
-@click.option('--database_name', required=True, type=str)
 @click.option('--domain_name', required=True, type=str)
 @click.option('--schema_name', required=True, type=str)
 @click.option('--model_name', required=True, type=str)
 @click.option('--table_def_filepath', required=True, type=str)
 @click.option('--profile_name', required=True, type=str)
 @click.option('--output_filepath', required=True, type=str)
-def gen_macro_schema_history(database_name: str,
-                             schema_name: str,
+def gen_macro_schema_history(schema_name: str,
                              domain_name: str,
                              model_name: str,
                              table_def_filepath: str,
@@ -28,7 +26,6 @@ def gen_macro_schema_history(database_name: str,
     """ this script monitors databricks workflow job and restarts if necessary
 
     Args:
-        database_name: database name
         domain_name: domain name
         schema_name: schema name
         model_name: the job name
@@ -43,11 +40,6 @@ def gen_macro_schema_history(database_name: str,
     """
 
     _config = _config_.ConfigSingleton(profile_name=profile_name)
-
-    if database_name:
-        _config.config["DATABASE_NAME"] = database_name
-    elif "DATABASE_NAME" in os.environ:
-        _config.config["DATABASE_NAME"] = os.environ.get("DATABASE_NAME")
 
     if schema_name:
         _config.config["SCHEMA_NAME"] = schema_name
@@ -88,7 +80,6 @@ def gen_macro_schema_history(database_name: str,
     sql_object = _connect_.get_directive(object_name="sqlparse", profile_name=profile_name)
     # x = sql_object.extract_info_from_ddl(sql_text)
     print(sql_object.generate_schema_history_manifest_from_ddl(
-        database_name=database_name,
         domain_name=domain_name,
         schema_name=schema_name,
         table_name=model_name,
