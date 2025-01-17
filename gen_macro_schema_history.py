@@ -76,7 +76,7 @@ def gen_macro_schema_history(schema_name: str,
     print(profile_name)
 
 
-    sql_text = _util_file_.identity_load_file(table_def_filepath)
+    sql_text = _util_file_.json_load(table_def_filepath)
     sql_object = _connect_.get_directive(object_name="sqlparse", profile_name=profile_name)
     # x = sql_object.extract_info_from_ddl(sql_text)
     print(sql_object.generate_schema_history_manifest_from_ddl(
