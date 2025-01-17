@@ -12,7 +12,7 @@ command_20:
 command_30:
   _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
   _command_:
-    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python gen_macro_schema_history.py --profile_name {{ PROFILE_NAME }} --domain_name ${MODEL_DIR} --schema_name 'sss' --model_name {{ MODEL_NAME }} --table_def_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/table_schema_{{ MODEL_NAME }}.json --output_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/schema_history/macros/{{ MODEL_DIR }}/{{ MODEL_DIR }}_20241213203812__create_table_20241213203812__{{ MODEL_NAME }}.sql"
+    - "cd /Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2 && python gen_macro_schema_history.py --profile_name {{ PROFILE_NAME }} --domain_name ${MODEL_DIR} --schema_name 'sss' --model_name {{ MODEL_NAME }} --table_def_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/playground/table_schema_{{ MODEL_NAME }}.json --output_filepath /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/schema_history/macros/{{ MODEL_DIR }}/{{ MODEL_DIR }}_20241213203812__create_table_{{ MODEL_NAME }}.sql"
 
 
 
