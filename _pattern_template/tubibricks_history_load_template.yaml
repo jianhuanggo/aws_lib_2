@@ -45,10 +45,12 @@ command_100:
     - cd {{ DW_HOME }}/dw/tubibricks/models/{{ MODEL_DIR }}
 
 command_103:
+  _ignore_error_: True
   _command_:
     - rm /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/resources/*
 
 command_105:
+  _ignore_error_: True
   _command_:
     - rm -rf /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/src/*
 
