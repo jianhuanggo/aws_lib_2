@@ -94,13 +94,13 @@ def yaml_dump2(filepath: str, data: Any, logger: Log = None) -> None:
                              mode="error",
                              ignore_flag=False)
 
-def yaml_dump3(filepath: str, data: Any, logger: Log = None) -> None:
+def yaml_dump3(filepath: str, data: Any, indent: int = 4, logger: Log = None) -> None:
     class NoAnchorDumper(yaml.Dumper):
         def ignore_aliases(self, data):
             return True
     try:
         with open(filepath, "w") as file:
-            file.write(yaml.dump(data, Dumper=NoAnchorDumper, default_flow_style=False, sort_keys=False))
+            file.write(yaml.dump(data, indent = indent, Dumper=NoAnchorDumper, default_flow_style=False, sort_keys=False))
     except Exception as err:
         _common_.error_logger(currentframe().f_code.co_name,
                              err,
