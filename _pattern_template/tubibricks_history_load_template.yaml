@@ -46,11 +46,11 @@ command_100:
 
 command_103:
   _command_:
-    - rm -rf /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/resources
+    - rm /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/resources/*
 
 command_105:
   _command_:
-    - rm -rf /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/src
+    - rm -rf /Users/jian.huang/projects/{{ PROJECT_ID }}/dw/tubibricks/src/*
 
 command_110:
   _working_dir_: "{{ DW_HOME }}/dw"
