@@ -11,7 +11,7 @@ command_120:
 command_130:
     _working_dir_: /Users/jian.huang/projects_poc/dw
     _command_:
-        - cd /Users/jian.huang/projects/{{ PROJECT_ID }}/dw && git merge origin/master
+        - cd /Users/jian.huang/projects/{{ PROJECT_ID }}/dw && git merge origin/master -m {{ GIT_COMMENTS }}
 
 command_140:
     _working_dir_: /Users/jian.huang/projects_poc/dw

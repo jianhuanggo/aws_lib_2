@@ -81,7 +81,11 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
             return true if successful otherwise false
 
         """
-
+        column_type_conversation = {
+            "string": "varchar",
+            "bigint": "bigint"
+            }
+        column_names = [(col_name, column_type_conversation.get(col_type, col_type)) for col_name, col_type in column_names]
 
         template = Template(_util_file_.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/schema_redshift.sql"))
         from datetime import datetime
