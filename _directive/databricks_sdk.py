@@ -1,10 +1,16 @@
+import json
+from datetime import time
 from inspect import currentframe
 from typing import List, Dict, Tuple, Iterator, Union
-
+from venv import logger
+from base64 import b64decode, b64encode
 from botocore.waiter import Waiter
 from databricks.sdk.service.catalog import CatalogInfo
+from databricks.sdk.service.workspace import ExportFormat, ImportFormat
+from matplotlib.font_manager import json_dump
 from wirerope.callable import Callable
 
+from datetime import datetime
 from _meta import _meta as _meta_
 from _common import _common as _common_
 from _config import config as _config_
@@ -16,6 +22,8 @@ from task import task_completion
 from databricks import sdk
 from databricks.sdk.service import catalog
 
+
+__TIME_WAIT__ = 30
 
 """
 
@@ -299,10 +307,6 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
 
 
-
-
-
-
     @_common_.exception_handler
     def list_runs(self,
                  user_name: str = "",
@@ -311,6 +315,104 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
         return [(each_job.cluster_instance, each_job.job_id, each_job.run_id, each_job.status.state.value) for each_job in
                 self.client.jobs.list_runs() if user_name == "" or each_job.creator_user_name == user_name]
+
+    @_common_.exception_handler
+    def get_notebook_path_from_job_id(self, job_id: str) -> str:
+        job_details = self.client.jobs.get(job_id)
+        for each_task in job_details.settings.tasks:
+            if hasattr(each_task, "notebook_task"):
+                return each_task.notebook_task.notebook_path
+
+    @_common_.exception_handler
+    def get_job_id_from_workflow_name(self, workflow_name: str) -> str:
+        workflow_list = list(self.client.jobs.list(name=workflow_name))
+        return workflow_list[0].job_id if len(workflow_list) > 0 else ""
+
+    @_common_.exception_handler
+    def get_notebook_content_from_path(self, notebook_path: str) -> str:
+        return b64decode(self.client.workspace.export(path=notebook_path).content).decode("utf-8")
+
+    @_common_.exception_handler
+    def get_notebook_content_replace(self, notebook_path: str, search_string: str, replace_string: str) -> bool:
+        """ edit the notebook content by search and replace
+
+        Args:
+            notebook_path: notebook path
+            search_string: the string we are looking for
+            replace_string: the string we are replacing
+
+        # make sure there is an file extension for the notebook_path, w/o it, it would treat this as a directory
+        Returns: return true if successful
+
+        """
+
+        notebook_content = self.client.workspace.export(path=notebook_path)
+        notebook_content = b64decode(notebook_content.content)
+
+        notebook_text = notebook_content.decode("utf-8")
+        updated_notebook_text = notebook_text.replace(search_string, replace_string)
+
+        if notebook_text == updated_notebook_text:
+            _common_.info_logger(f"No occurrence of {search_string} found in the notebook", logger=logger)
+            return False
+        _common_.info_logger(f"replaced occurrences of {search_string} found in the notebook", logger=logger)
+        notebook_content = self.client.workspace.upload(notebook_path,
+            content=updated_notebook_text.encode("utf-8"),
+            overwrite=True
+        )
+        _common_.info_logger(f"notebook of {notebook_path} updated successfully")
+        return True
+
+    @_common_.exception_handler
+    def job_monitoring(self,
+                       run_id: int,
+                       max_timeout: int = 86400,
+                       max_retries: int = 3) -> bool:
+
+        """ edit the notebook content by search and replace
+
+        Args:
+            notebook_path: notebook path
+            search_string: the string we are looking for
+            replace_string: the string we are replacing
+
+        # make sure there is an file extension for the notebook_path, w/o it, it would treat this as a directory
+        Returns: return true if successful
+
+        """
+        start_time = datetime.timestamp(datetime.now())
+        retries = 0
+        from time import sleep
+        sleep(3)
+        print("AAAA")
+        print(datetime.timestamp(datetime.now()) - start_time)
+
+        while datetime.timestamp(datetime.now()) - start_time < max_timeout:
+            try:
+                run_status = self.client.jobs.get_run(run_id=run_id)
+
+                # print(run_status)
+                # exit(0)
+                job_state = run_status.state
+                _common_.info_logger(f"current status of job {run_id} is {job_state} ", logger=logger)
+
+                if job_state.life_cycle_state in ("TERMINATED", "SKIPPED", "INTERNAL_ERROR"):
+                    _common_.info_logger(f"run completed with final state: {job_state.result_state}", logger=logger)
+                    return job_state.result_state
+
+
+                sleep(__TIME_WAIT__)
+            except Exception as err:
+                retries += 1
+                if retries > max_retries:
+                    logger.error(f"Max retries exceeded: {max_retries}")
+                    raise err
+                sleep(__TIME_WAIT__)
+                _common_.info_logger(f"encounter {err}, retrying...", logger=logger)
+        _common_.info_logger(f"job run time out after {max_timeout}", logger=logger)
+
+
+
 
 
 

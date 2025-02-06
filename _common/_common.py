@@ -173,11 +173,11 @@ def cache_result(filepath: str):
         def function(*args, **kwargs):
             if os.path.isfile(filepath):
                 _common_.info_logger(f"found {filepath}, loading cached result")
-                return iutil_file.json_load(filepath)
+                return _util_file.json_load(filepath)
             try:
                 _ret = func(*args, **kwargs)
                 _common_.info_logger(f"save result to {filepath}")
-                iutil_file.json_dump(filepath, _ret)
+                _util_file.json_dump(filepath, _ret)
                 return _ret
             except Exception as err:
                 error_logger(func.__name__,
