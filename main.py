@@ -1,14 +1,18 @@
 import json
 import xxlimited
-from unittest.mock import numerics
+
 
 from pandas.core.computation.expressions import where
 from pyarrow import table
+from sympy import collect
+
+from logging import Logger as Log
 
 from _connect import _connect as _connect_
 from typing import Dict
 from _config import config as _config_
 from inspect import currentframe
+
 
 
 def test():
@@ -1045,8 +1049,352 @@ def a():
     print(result)
 
 
+def run():
+    import os
+    import time
+
+
+    from _connect import _connect as _connect_
+
+
+    """
+    def create(self,
+               spark_version: str,
+               *,
+               apply_policy_default_values: Optional[bool] = None,
+               autoscale: Optional[AutoScale] = None,
+               autotermination_minutes: Optional[int] = None,
+               aws_attributes: Optional[AwsAttributes] = None,
+               azure_attributes: Optional[AzureAttributes] = None,
+               clone_from: Optional[CloneCluster] = None,
+               cluster_log_conf: Optional[ClusterLogConf] = None,
+               cluster_name: Optional[str] = None,
+               custom_tags: Optional[Dict[str, str]] = None,
+               data_security_mode: Optional[DataSecurityMode] = None,
+               docker_image: Optional[DockerImage] = None,
+               driver_instance_pool_id: Optional[str] = None,
+               driver_node_type_id: Optional[str] = None,
+               enable_elastic_disk: Optional[bool] = None,
+               enable_local_disk_encryption: Optional[bool] = None,
+               gcp_attributes: Optional[GcpAttributes] = None,
+               init_scripts: Optional[List[InitScriptInfo]] = None,
+               instance_pool_id: Optional[str] = None,
+               is_single_node: Optional[bool] = None,
+               kind: Optional[Kind] = None,
+               node_type_id: Optional[str] = None,
+               num_workers: Optional[int] = None,
+               policy_id: Optional[str] = None,
+               runtime_engine: Optional[RuntimeEngine] = None,
+               single_user_name: Optional[str] = None,
+               spark_conf: Optional[Dict[str, str]] = None,
+               spark_env_vars: Optional[Dict[str, str]] = None,
+               ssh_public_keys: Optional[List[str]] = None,
+               use_ml_runtime: Optional[bool] = None,
+               workload_type: Optional[WorkloadType] = None)
+        https://github.com/databricks/databricks-sdk-py/blob/main/databricks/sdk/service/compute.py
+        create_and_wait(
+        """
+
+
+
+
+
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", "config_dev")
+    # print(db_sdk_obj.client)
+    # print(db_sdk_obj.client.clusters.ensure_cluster_is_running("0121-120058-z9hwxgp9"))
+
+    w = db_sdk_obj.client
+
+    counter = 0
+    for c in w.jobs.list():
+        counter += 1
+        print(c.job_id)
+        if counter == 1: break
+
+    exit(0)
+
+
+    counter = 0
+    for c in w.clusters.list():
+        counter += 1
+        print(c.cluster_id, c.instance_pool_id)
+        if counter == 1: break
+
+
+
+    # print(w.clusters.list_node_types())
+
+    exit(0)
+    print(w.get_workspace_id())
+    print(w.workspace)
+    print(dir(w.pipelines))
+
+    exit(0)
+    from databricks.sdk.service import compute
+
+    print(type(compute))
+
+    exit(0)
+
+    all = w.clusters.list(compute.ListClustersReponse())
+    print(all)
+
+    exit(0)
+
+    latest = w.clusters.select_spark_version(latest=True, long_term_support=True)
+
+    cluster_name = f'sdk-{time.time_ns()}'
+
+    print(latest, cluster_name)
+
+    exit(0)
+
+    clstr = w.clusters.create(cluster_name=cluster_name,
+                              spark_version=latest,
+                              instance_pool_id=os.environ["TEST_INSTANCE_POOL_ID"],
+                              autotermination_minutes=15,
+                              num_workers=1).result()
+
+    exit(0)
+
+
+    from databricks.sdk import WorkspaceClient
+    from databricks.sdk.service import jobs
+
+    w = WorkspaceClient()
+
+    databricks_cluster_id = ""
+
+
+
+    cluster_id = w.clusters.ensure_cluster_is_running(
+        os.environ["DATABRICKS_CLUSTER_ID"]) and os.environ["DATABRICKS_CLUSTER_ID"]
+
+    exit(0)
+
+    notebook_path = f'/Users/{w.current_user.me().user_name}/sdk-{time.time_ns()}'
+
+    created_job = w.jobs.create(name=f'sdk-{time.time_ns()}',
+                                tasks=[
+                                    jobs.Task(description="test",
+                                              existing_cluster_id=cluster_id,
+                                              notebook_task=jobs.NotebookTask(notebook_path=notebook_path),
+                                              task_key="test",
+                                              timeout_seconds=0)
+                                ])
+
+    # cleanup
+    w.jobs.delete(job_id=created_job.job_id)
+
+
+
+
+
+def prod_job():
+    from collections import defaultdict
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    job_name = "wf_hl_807266_mutable_dimensions_ad_source_name_stg"
+    from pprint import pprint
+    job_id = list(db_sdk_obj.client.jobs.list(name=job_name))[0].job_id
+    print(job_id)
+
+    def get_notebook_path_from_job(client, job_id: str):
+        """
+
+        Args:
+            job_id:
+
+        Returns:
+
+        """
+        job_details = client.jobs.get(job_id)
+        for each_task in job_details.settings.tasks:
+            if hasattr(each_task, "notebook_task"):
+                return each_task.notebook_task.notebook_path
+
+
+
+
+    job_details = db_sdk_obj.client.jobs.get(job_id)
+    pprint(job_details)
+
+    print(get_notebook_path_from_job(db_sdk_obj.client,job_id=job_id))
+    exit(0)
+
+    def parse_info(job_id: str):
+        cluster_info = email_notification = None
+        tasks = defaultdict(list)
+        # print(db_sdk_obj.client.jobs.get(job_id))
+
+        job = db_sdk_obj.client.jobs.get(job_id)
+        cluster_info = job.settings.job_clusters
+        email_notifications = job.settings.email_notifications
+        for each_task in job.settings.tasks:
+            tasks[each_task.task_key].append(each_task.notebook_task)
+        print(cluster_info)
+        print(email_notifications)
+        pprint(tasks)
+        return cluster_info, email_notifications, tasks
+
+    cluster_info, email_notifications, notebook_tasks = parse_info(job_id)
+
+
+
+    print(get_notebook_path_from_job(db_sdk_obj.client,job_id=job_id))
+    exit(0)
+    for tasks in notebook_tasks.values():
+        for task in tasks:
+            print(task.notebook_path)
+        exit(0)
+        print(dir(each_task.notebook_path))
+        exit(0)
+        if hasattr(each_task, "notebook_task"):
+            print(each_task.task)
+
+    exit(0)
+
+
+
+
+
+
+
+
+
+
+    exit(0)
+
+    interest_jobs = [job for job in db_sdk_obj.client.jobs.list() if job_name in job.settings.name]
+    from pprint import pprint
+    pprint(interest_jobs)
+
+    job_status = defaultdict(set)
+
+    for each_job in interest_jobs:
+        job_status[each_job.job_id].add(each_job.job_id)
+
+    last_runs = db_sdk_obj.client.jobs.list_runs(job_id=job_id, limit=1)
+
+    for run in last_runs.runs():
+        print("AAAL", run)
+
+
+def sql_run():
+    sql ="""
+    create table hive_metastore.tubidw_dev.z_807266_history_load_status (
+id varchar,
+created_time varchar,
+updated_time varchar,
+job_id varchar,
+job_status varchar,
+job_content varchar
+)
+
+    """
+
+    sql ="""
+with dt_range as (
+	select explode(sequence(TO_DATE('2021-01-01', 'yyyy-MM-dd'), TO_DATE('2024-12-31', 'yyyy-MM-dd'), interval 1 day)) as dt
+), data as (
+	select ds, count(1) as cnt from hive_metastore.tubidw.adserver_mutable_dimension_ad_source_name_stg
+	where TO_DATE(ds, 'yyyy-MM-dd') >= DATE_TRUNC('day', TO_DATE('2021-01-01', 'yyyy-MM-dd')) 
+	AND TO_DATE(ds, 'yyyy-MM-dd') < DATE_TRUNC('day', TO_DATE('2025-01-01', 'yyyy-MM-dd'))
+	group by 1
+), data1 as (
+	select t1.dt, coalesce(t2.cnt, 0) as cnt
+	from dt_range t1
+	left join data t2 on t1.dt = t2.ds
+)
+
+select dt from data1 where cnt = 0
+    """
+
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+
+    # response = db_sdk_obj.client.query.statements.execute(sql, warehouse_id=db_sdk_obj._conifg.config.get("DATABRICKS_WAREHOUSE_ID"))
+    # for row in response:
+    #     print(row)
+
+
+def update_note_book(workflow_name: str,
+                     profile_name: str,
+                     replace_string: str,
+                     logger: Log = None):
+
+    import re
+    from _common import _common as _common_
+
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", profile_name)
+    job_id = db_sdk_obj.get_job_id_from_workflow_name(workflow_name)
+    notebook_path = db_sdk_obj.get_notebook_path_from_job_id(job_id)
+    resource_content = db_sdk_obj.get_notebook_content_from_path(notebook_path)
+    regex_pattern = r"\d{4}-\d{2}-\d{2}"
+    matches = re.findall(regex_pattern, resource_content)
+    if len(set(matches)) > 1:
+        _common_.error_logger(currentframe().f_code.co_name,
+                         f"too many dates in the notebook, expecting 1 and getting {len(set(matches))}",
+                         logger=logger,
+                         mode="error",
+                         ignore_flag=False)
+    _common_.info_logger(f"replacing date {matches[0]} with {replace_string}", logger=logger)
+    db_sdk_obj.get_notebook_content_replace(notebook_path=notebook_path,
+                                            search_string=matches[0],
+                                            replace_string=replace_string)
+
+def job_m(run_id: int):
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    db_sdk_obj.job_monitoring(run_id)
+
+
+#
+# def history_load():
+#
+
+def parse_sql():
+    from _sql import _sql_parse
+    _sql_parse.extract_cte_select(_sql_parse.read_sql(
+            "/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_sql/data/hive_metastore.tubibricks_dev.all_metric_hourly.sql"))
+
+def format_dbt_compile_output(filepath: str, output_filepath: str):
+    from _api import _dbt as _dbt_
+    print(_dbt_.format_dbt_compile_output(input_filepath=filepath, output_filepath=output_filepath))
+
+def convert_redshift_sql_to_tubibricks(filepath: str, output_filepath: str):
+    from _api import _dbt as _dbt_
+    print(_dbt_.convert_redshift_sql_to_tubibricks(input_filepath=filepath, output_filepath=output_filepath))
+
 
 if __name__ == '__main__':
+    convert_redshift_sql_to_tubibricks("/Users/jian.huang/projects/789879/artifact/retention_sketch_weekly_byplatform_bycountry.sql", "test100.sql")
+    exit(0)
+    format_dbt_compile_output("/Users/jian.huang/projects/789879/artifact/retention_sketch_weekly_byplatform_bycountry.sql", "test100.sql")
+    exit(0)
+    parse_sql()
+    exit(0)
+    # job_m(529874795061566)
+    # exit(0)
+    # update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_1",
+    #                  profile_name="config_prod",
+    #                  replace_string="2024-03-01")
+    update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_2",
+                     profile_name="config_prod",
+                     replace_string="2024-03-03")
+    # update_note_book(workflow_name="wf_hl_807266_adserver_mutable_dimension_revenue_stream_stg_3",
+    #                  profile_name="config_prod",
+    #                  replace_string="2021-03-29")
+    # update_note_book(workflow_name="wf_hl_807266_adserver_mutable_dimension_revenue_stream_stg_4",
+    #                  profile_name="config_prod",
+    #                  replace_string="2021-03-30")
+    # update_note_book(workflow_name="wf_hl_807266_adserver_mutable_dimension_revenue_stream_stg_5",
+    #                  profile_name="config_prod",
+    #                  replace_string="2021-03-31")
+    exit(0)
+    # sql_run()
+    # exit(0)
+    prod_job()
+    exit(0)
+    run()
+    exit(0)
     a()
     exit(0)
     print("\n".join(p3()))
