@@ -2,8 +2,6 @@ import pandas as pd
 from inspect import currentframe
 from logging import Logger as Log
 
-from dns.e164 import query
-
 from _common._common import error_logger
 from _meta import _meta as _meta_
 from _config import config as _config_
