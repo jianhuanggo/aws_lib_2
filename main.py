@@ -1363,8 +1363,91 @@ def convert_redshift_sql_to_tubibricks(filepath: str, output_filepath: str):
     from _api import _dbt as _dbt_
     print(_dbt_.convert_redshift_sql_to_tubibricks(input_filepath=filepath, output_filepath=output_filepath))
 
+def check():
+    from _connect import _connect as _connect_
+    db_sdk_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    db_sdk_obj.get_jobs_by_username("jian.huang@tubi.tv")
+
+def print_jobs():
+    from _util import _util_file as _util_file_
+    for each_job in _util_file_.json_load("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/my_job_id.json"):
+        print(each_job.get("job_id"))
+
+def create_table(filepath: str):
+    from _util import _util_file as _util_file_
+    result = "insert into v_aws_pricing values "
+    for k, v in _util_file_.json_load(filepath).items():
+        result += f"('{k}',{v}),"
+    result = result[:-1] + ';'
+    return result
+
+
+def get_redshift_cluster():
+    redshift_obj = _connect_.get_directive("redshift", "config_prod")
+    # redshift_obj.job_monitoring(run_id)
+    conn = redshift_obj.auto_connect()
+    # redshift_obj.query(connect_obj=conn, query_string="select count(1) from tubidw.retention_sketch_weekly_byplatform_bycountry")
+    #
+    # response = redshift_obj.query(connect_obj=conn,
+    #                    query_string="SHOW TABLE tubidw.retention_sketch_monthly_byplatform_bycountry")
+
+    m_select_stmt = redshift_obj.get_select_from_create_stmt(database_name="tubidw",
+                                                        table_name="retention_sketch_monthly_byplatform_bycountry")
+
+    print(m_select_stmt)
+
+    # response = redshift_obj.query(
+    #     connect_obj=redshift_obj.auto_connect(),
+    #     query_string=m_select_stmt, where_clause="LIMIT 10")
+
+
+    w_select_stmt = redshift_obj.get_select_from_create_stmt(database_name="tubidw",
+                                                        table_name="retention_sketch_weekly_byplatform_bycountry")
+
+    print(w_select_stmt)
+
+    d_select_stmt = redshift_obj.get_select_from_create_stmt(database_name="tubidw",
+                                                        table_name="retention_sketch_daily_byplatform_bycountry")
+
+    print(d_select_stmt)
+
+    exit(0)
+
+    from pprint import pprint
+
+    pprint(response[0][0])
+    redshift_obj.select_stmt_reformat(response[0][0])
+
+from _util import _util_helper as _util_helper_
+#@_util_helper_.convert_flag(write_flg=True, output_filepath="redshift_history_load_select_stmt.py")
+def get_redshift_history_load_select_stmt(database_name: str, table_name: str, output_filepath: str) -> bool:
+    from _util import _util_file as _util_file_
+    redshift_obj = _connect_.get_directive("redshift", "config_prod")
+    response = redshift_obj.get_select_from_create_stmt(database_name=database_name,
+                                             table_name=table_name
+                                             )
+    _util_file_.identity_write_file(output_filepath, response)
+    return True
+
+
+
 
 if __name__ == '__main__':
+    get_redshift_history_load_select_stmt(database_name="tubidw",
+                                         table_name="retention_sketch_daily_byplatform_bycountry")
+    exit(0)
+    get_redshift_cluster()
+    exit(0)
+    # update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_1",
+    #                  profile_name="config_prod",
+    #                  replace_string="2024-03-01")
+    print(create_table("aws_pricing_869586.json"))
+    exit(0)
+
+    print_jobs()
+    exit(0)
+    check()
+    exit(0)
     convert_redshift_sql_to_tubibricks("/Users/jian.huang/projects/789879/artifact/retention_sketch_weekly_byplatform_bycountry.sql", "test100.sql")
     exit(0)
     format_dbt_compile_output("/Users/jian.huang/projects/789879/artifact/retention_sketch_weekly_byplatform_bycountry.sql", "test100.sql")
@@ -1376,9 +1459,9 @@ if __name__ == '__main__':
     # update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_1",
     #                  profile_name="config_prod",
     #                  replace_string="2024-03-01")
-    update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_2",
-                     profile_name="config_prod",
-                     replace_string="2024-03-03")
+    # update_note_book(workflow_name="wf_hl_adserver_mutable_dimension_line_item_id_stg_2",
+    #                  profile_name="config_prod",
+    #                  replace_string="2024-03-03")
     # update_note_book(workflow_name="wf_hl_807266_adserver_mutable_dimension_revenue_stream_stg_3",
     #                  profile_name="config_prod",
     #                  replace_string="2021-03-29")

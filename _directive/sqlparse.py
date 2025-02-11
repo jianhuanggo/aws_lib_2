@@ -16,9 +16,11 @@ from task import task_completion
 
 
 class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
-    def __init__(self, config: _config_.ConfigSingleton = None, logger: Log = None):
-        self._config = config if config else _config_.ConfigSingleton()
-
+    def __init__(self,
+                 profile_name: str,
+                 config: _config_.ConfigSingleton = None,
+                 logger: Log = None):
+        self._config = config if config else _config_.ConfigSingleton(profile_name=profile_name)
 
     @_common_.exception_handler
     def run(self, *arg, **kwargs) -> str:
