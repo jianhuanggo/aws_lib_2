@@ -31,6 +31,7 @@ from _directive import databricks_sdk
 from _directive import sqlparse
 from _directive import buik_load
 from _api import _databrickscluster
+from _directive import redshift
 
 
 RT = TypeVar("RT")

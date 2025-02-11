@@ -3,10 +3,12 @@ from datetime import time
 from inspect import currentframe
 from typing import List, Dict, Tuple, Iterator, Union
 from venv import logger
+import re
 from base64 import b64decode, b64encode
 from botocore.waiter import Waiter
 from databricks.sdk.service.catalog import CatalogInfo
 from databricks.sdk.service.workspace import ExportFormat, ImportFormat
+from faiss.contrib.datasets import username
 from matplotlib.font_manager import json_dump
 from wirerope.callable import Callable
 
@@ -43,7 +45,7 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                  profile_name: str,
                  config: _config_.ConfigSingleton = None,
                  logger: Log = None):
-        self._config = config if config else _config_.ConfigSingleton()
+        self._config = config if config else _config_.ConfigSingleton(profile_name=profile_name)
 
         _common_.info_logger(self._config.config.get("DATABRICKS_HOST"), logger=logger)
         _common_.info_logger(self._config.config.get("DATABRICKS_TOKEN"), logger=logger)
@@ -304,9 +306,6 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         monitoring_job(f"{user_name}@tubi.tv", jobs[0])
         return True
 
-
-
-
     @_common_.exception_handler
     def list_runs(self,
                  user_name: str = "",
@@ -410,6 +409,42 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                 sleep(__TIME_WAIT__)
                 _common_.info_logger(f"encounter {err}, retrying...", logger=logger)
         _common_.info_logger(f"job run time out after {max_timeout}", logger=logger)
+
+    @_common_.exception_handler
+    def update_note_book(self,
+                         workflow_name: str,
+                         replace_string: str,
+                         logger: Log = None):
+
+        job_id = self.get_job_id_from_workflow_name(workflow_name)
+        notebook_path = self.get_notebook_path_from_job_id(job_id)
+        resource_content = self.get_notebook_content_from_path(notebook_path)
+        regex_pattern = r"\d{4}-\d{2}-\d{2}"
+        matches = re.findall(regex_pattern, resource_content)
+        if len(set(matches)) > 1:
+            _common_.error_logger(currentframe().f_code.co_name,
+                             f"too many dates in the notebook, expecting 1 and getting {len(set(matches))}",
+                             logger=logger,
+                             mode="error",
+                             ignore_flag=False)
+        _common_.info_logger(f"replacing date {matches[0]} with {replace_string}", logger=logger)
+        self.get_notebook_content_replace(notebook_path=notebook_path,
+                                          search_string=matches[0],
+                                          replace_string=replace_string)
+
+    @_common_.cache_result("my_job_id.json")
+    def get_jobs_by_username(self,
+                             username: str = "",
+                             logger: Log = None):
+        jobs = self.client.jobs.list()
+        user_jobs = []
+        for job in jobs:
+            if job.creator_user_name == username:
+                user_jobs.append({"username": job.creator_user_name,
+                                  "job_id": job.job_id,
+                                  "effective_budget_policy_id": job.effective_budget_policy_id})
+        return user_jobs
+
 
 
 
