@@ -1430,11 +1430,193 @@ def get_redshift_history_load_select_stmt(database_name: str, table_name: str, o
     return True
 
 
+"""
+
+    task_key: tubibricks_dev
+    bucket_name: tubi - redshift - tempdir - production
+    database: tubidw_dev
+    schema_name: tubidw
+    table_name: cohort_ltv_monthly
+    partition_by:
+
+
+"""
+
+def redshift_history_load(profile_name: str,
+                          database_name: str,
+                          table_name: str):
+
+    from tubi.databricks import Redshift
+
+    environment_map = {
+        "config_dev": {
+            "task_key": "tubibricks_dev",
+            "bucket_name": "tubi-redshift-tempdir-production",
+            "database": "tubidw_dev"
+        },
+        "config_prod": {
+            "task_key": "tubibricks",
+            "bucket_name": "tubi-redshift-tempdir-production",
+            "database": "tubidw"
+
+        }
+    }
+
+    base_parameters = environment_map.get(profile_name, environment_map.get(profile_name))
+
+    _config = _config_.ConfigSingleton(profile_name=profile_name)
+    _config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"] = base_parameters.get("bucket_name")
+    _config.config["REDSHIFT_MIGRATION_S3_FILEPATH"] = base_parameters.get("database")
+
+    _config.config["REDSHIFT_MIGRATION_DB_DATABASE_NAME"] = base_parameters.get("database")
+    _config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"] = base_parameters.get("database")
+    _config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"] = table_name
+    _config.config["REDSHIFT_MIGRATION_PARTITION_BY"] = ""
+
+
+    redshift_obj = _connect_.get_directive("redshift", profile_name)
+
+    table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name)
+
+    redshift_query = f"""UNLOAD ('{table_history_query_sql}')
+    TO 's3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/' iam_role 'arn:aws:iam::370025973162:role/tubi-redshift-production'
+    format parquet CLEANPATH"""
+
+    if _config.config["REDSHIFT_MIGRATION_PARTITION_BY"]:
+        redshift_query += f" PARTITIONED BY ({_config.config['REDSHIFT_MIGRATION_PARTITION_BY']})"
+
+
+
+    # print(f"""s3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/""")
+    #
+    # s3_filepath = f"""s3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/"""
+    # s3_filepath = s3_filepath.replace("s3://", "")
+    # s3_filepath_parts = s3_filepath.split("/")
+    # bucket_name = s3_filepath_parts[0]
+    # prefix = "/".join(s3_filepath_parts[1:])
+    # print(bucket_name, prefix)
+    #
+    # aws_object = _connect_.get_object("awss3", "config_dev")
+    #
+    #
+    # for bucket_name in aws_object.list_bucket_names():
+    #     if bucket_name == "tubi-redshift-tempdir-production":
+    #         print(bucket_name)
+
+    from pprint import pprint
+    # print([each_prefix for each_prefix in aws_object.list_objects(bucket_name="tubi-redshift-tempdir-production", prefix="") if each_prefix.startswith("tubi-redshift-")])
+
+    print(redshift_query)
+    base_parameters["redshift_select_query"]
+    databricks_obj = _connect_.get_directive("databricks_sdk", profile_name)
+    databricks_obj.job_run("/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py",
+                           job_parameters=base_parameters)
+
+
+
+
+
+
+    redshift_select_sql = redshift_query
+
+
+
+    # redshift_obj.query(redshift_obj.auto_connect(), redshift_query)
+    exit(0)
+    #
+    # print(redshift_query)
+    # print("\n" * 10)
+    # # redshift_obj.query(redshift_obj.auto_connect(), table_history_query_sql, where_clause="LIMIT 10")
+    #
+    # databricks_query = f"""CREATE OR REPLACE TABLE hive_metastore.{_config.config["REDSHIFT_MIGRATION_DB_DATABASE_NAME"]}.{table_name} AS
+    # SELECT * FROM parquet.`s3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/`"""
+    # if _config.config["REDSHIFT_MIGRATION_PARTITION_BY"]:
+    #     databricks_query += f" PARTITIONED BY {_config.config['REDSHIFT_MIGRATION_PARTITION_BY']}"
+    #
+    # print(databricks_query)
+
+def billing_download():
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    print(databricks_obj.billing_download_by_period("2024-11", "2024-12"))
+
+def get_name():
+    string = """
+    Aryan Gupta <agupta@tubi.tv>, Ashwin Prakash <ashwin.prakash@tubi.tv>, Bin Chen <binchen@tubi.tv>, Brandon Luna <bluna@tubi.tv>, Dingzhe Li <dingzhe.li@tubi.tv>, Dan Park <dpark@tubi.tv>, Hannah Wu <hannah.wu@tubi.tv>, Igor Starostenko <istarostenko@tubi.tv>, Jake Leon <jleon@tubi.tv>, Mike Wilson <mikewilson@tubi.tv>, Minbin Luo <minbin.luo@tubi.tv>, Oliver Lewis <olewis@tubi.tv>, Renkai Ge <renkaige@tubi.tv>, Renyu Jiao <renyujiao@tubi.tv>, Sheik Mamun Ul Hoque <shoque@tubi.tv>, Sulav Kafley <skafley@tubi.tv>, Stephen Layland <slayland@tubi.tv>, Sai Vuppalapati <svuppalapati@tubi.tv>, Wei Tu <weitu@tubi.tv>, Xiaobin Fan <xiaobinfan@tubi.tv>, Xiaoxiao Chen <xiaoxiao@tubi.tv>, Yuchu Cao <ycao@tubi.tv>, Yujia Yang <yujia@tubi.tv>, Yu Liu <yuliu@tubi.tv>, Zehra Husain <zehra.rizvi@tubi.tv>
+    """
+
+    emails = set()
+
+    for s in string.split():
+        if "tubi.tv" in s:
+            s = s.replace("<", "")
+            s = s.replace(">", "")
+            s = s.replace(",", "")
+            emails.add(s)
+    return ", ".join(list(emails))
+
+
+def get_databricks_cluster():
+
+    from _connect import _connect as _connect_
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_dev")
+    print(databricks_obj.get_cluster())
+
+def list_files():
+    from _connect import _connect as _connect_
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_dev")
+    for each_file in databricks_obj.list_workspace_file("/Users/jian.huang@tubi.tv/scripts"):
+        print(each_file)
+
+def workspace_upload():
+    from _connect import _connect as _connect_
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_dev")
+    databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load.py",
+                                         "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py", overwrite=True)
+
+
+def run_spark_jobs():
+    from _connect import _connect as _connect_
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_dev")
+    databricks_obj.job_run("/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py")
+
+
 
 
 if __name__ == '__main__':
-    get_redshift_history_load_select_stmt(database_name="tubidw",
-                                         table_name="retention_sketch_daily_byplatform_bycountry")
+    run_spark_jobs()
+    exit(0)
+    workspace_upload()
+    exit(0)
+    list_files()
+    exit(0)
+
+    get_databricks_cluster()
+    exit(0)
+
+
+    redshift_history_load(profile_name="config_prod",
+                          database_name="tubidw",
+                          table_name="retention_sketch_monthly_byplatform_bycountry")
+    exit(0)
+
+    redshift_history_load(profile_name="config_prod",
+                          database_name="tubidw",
+                          table_name="retention_sketch_weekly_byplatform_bycountry")
+    exit(0)
+
+    redshift_history_load(profile_name="config_prod",
+                          database_name="tubidw",
+                          table_name="retention_sketch_daily_byplatform_bycountry")
+    exit(0)
+    print(get_name())
+    exit(0)
+    billing_download()
+    exit(0)
+
+
+
+    # get_redshift_history_load_select_stmt(database_name="tubidw",
+    #                                      table_name="retention_sketch_daily_byplatform_bycountry")
     exit(0)
     get_redshift_cluster()
     exit(0)

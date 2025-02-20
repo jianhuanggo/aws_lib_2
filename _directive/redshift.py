@@ -183,7 +183,7 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
             query_string=f"SHOW TABLE {database_name}.{table_name}")
 
         col_names = self.select_stmt_reformat(sql_command="create", sql_text=create_sql_stmt[0][0])
-        col_names_reformat = [f"{_columns_extraction_reformat.get(str(col_type).upper(), '')}({col_name})" if str(col_type).upper() == "HLLSKETCH" else col_name for col_name, col_type in col_names]
+        col_names_reformat = [f"{_columns_extraction_reformat.get(str(col_type).upper(), '')}({col_name}) as {col_name}" if str(col_type).upper() == "HLLSKETCH" else col_name for col_name, col_type in col_names]
         return f"select {','.join(col_names_reformat)} from {database_name}.{table_name}"
 
 

@@ -38,17 +38,20 @@ RT = TypeVar("RT")
 
 
 @contextlib.contextmanager
-def create_session(object_type: str, logger: Log = None) -> Callable:
+def create_session(object_type: str,
+                   profile_name: str,
+                   logger: Log = None) -> Callable:
     """create an instance of reference object based on input object_type
 
     Args:
         object_type: type of the object, for example, slack, pagerduty
+        profile_name: profile name
         logger: whether error msg should be persisted in a log file
 
     Returns: instance of class object
 
     """
-    _config = _config_.ConfigSingleton()
+    _config = _config_.ConfigSingleton(profile_name=profile_name)
 
     _object_dict = {_object_name.lower(): _object_val for _object_name, _object_val in
                     _meta_.MetaSingleton().object_registration.items()}
@@ -73,6 +76,7 @@ def create_session(object_type: str, logger: Log = None) -> Callable:
 
 
 def object_binding(object_type: str,
+                   profile_name: str,
                    object_name: str = "",
                    variable_name: str = "identity_action") -> Callable[[Callable[..., RT]], Callable[..., RT]]:
     """this decorator provides the functionality to bind an instance of object to variable_name
@@ -80,6 +84,7 @@ def object_binding(object_type: str,
 
     Args:
         object_type: type of an object
+        profile_name: profile name
         object_name: name of an object
         variable_name: the binding variable name
 
@@ -99,7 +104,7 @@ def object_binding(object_type: str,
                 if object_name is None or object_name in kwargs.get(variable_name).__dict__.get(object_type).__dict__:
                     return func(*args, **kwargs)
             else:
-                with create_session(object_type) as session:
+                with create_session(object_type, profile_name) as session:
                     if session:
                         if object_name:
                             object_name_namespace = SimpleNamespace(**{object_name: session})
@@ -111,9 +116,11 @@ def object_binding(object_type: str,
     return decorator
 
 
-def get_object(object_name: str, logger: Log = None):
+def get_object(object_name: str,
+               profile_name: str,
+               logger: Log = None):
     try:
-        return object_binding(object_name)(lambda identity_action: identity_action)()
+        return object_binding(object_name, profile_name)(lambda identity_action: identity_action)()
     except Exception as err:
         _common_.error_logger(currentframe().f_code.co_name,
                               err,

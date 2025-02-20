@@ -13,13 +13,20 @@ from pprint import pprint
 from botocore.exceptions import ClientError
 
 
-class AwsApiAWSS3(metaclass=_meta_.Meta):
-    def __init__(self, config: _config_.ConfigSingleton = None, logger: Log = None):
-        self._config = config if config else _config_.ConfigSingleton()
 
-        self._session = _aws_config_.setup_session_by_profile(self._config.config.get("aws_profile_name"), self._config.config.get("aws_region_name")) if \
-            self._config.config.get("aws_profile_name") and self._config.config.get("aws_region_name") else _aws_config_.setup_session(self._config)
+class AwsApiAWSS3(metaclass=_meta_.Meta):
+    def __init__(self,
+                 profile_name: str,
+                 config: _config_.ConfigSingleton = None, logger: Log = None):
+        self._config = config if config else _config_.ConfigSingleton(profile_name=profile_name)
+
+        icase_aws_profile_name = self._config.config.get("aws_profile_name") or self._config.config.get("AWS_PROFILE_NAME")
+        icase_aws_region_name = self._config.config.get("aws_region_name") or self._config.config.get("AWS_REGION_NAME")
+
+        self._session = _aws_config_.setup_session_by_profile(icase_aws_profile_name, icase_aws_region_name) if \
+            icase_aws_profile_name and icase_aws_region_name else _aws_config_.setup_session(self._config)
         self._client = self._session.client("s3")
+
 
     def check_s3_object_exist(self, s3_filepath: str, logger: Log = None) -> bool:
         _dirpath = s3_filepath[len("s3://"):] if s3_filepath.startswith("s3://") else s3_filepath
