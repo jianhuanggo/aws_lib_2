@@ -17,12 +17,13 @@ from _meta import _meta as _meta_
 from _common import _common as _common_
 from _config import config as _config_
 from logging import Logger as Log
-from databricks.sdk.service.jobs import BaseJob, Wait
+from databricks.sdk.service.jobs import BaseJob, Wait, SparkPythonTask, SubmitTask, RunNow, NotebookTask
 from _util import _util_file as _util_file_
 from os import path
 from task import task_completion
 from databricks import sdk
 from databricks.sdk.service import catalog
+
 
 
 __TIME_WAIT__ = 30
@@ -39,6 +40,7 @@ class JobsAPI:
 
 """
 from databricks.sdk import WorkspaceClient
+from databricks.sdk import BillableUsageAPI
 
 class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
     def __init__(self,
@@ -52,6 +54,103 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         self.client = WorkspaceClient(host=self._config.config.get("DATABRICKS_HOST"),
                             token=self._config.config.get("DATABRICKS_TOKEN")
                             )
+        # print(self.client.api_client.account_id)
+
+        # print(dir(self.client.api_client))
+        # exit(0)
+
+    # @_common_.exception_handler
+    # def get_job_cluster(self) -> list | None:
+    #     """return a list of databricks cluster
+    #
+    #     Returns: a list of clusters if any otherwise None
+    #
+    #     """
+    #     from pprint import pprint
+    #     cluster_name = self._config.config.get("") or self._config.config.get("")
+    #     for each_cluster in self.list_clusters():
+    #         pprint(each_cluster)
+    #         exit(0)
+    #         if each_cluster["name"] == cluster_name:
+    #             pprint(each_cluster)
+    #             return each_cluster
+
+    @_common_.exception_handler
+    def list_clusters(self) -> list | None:
+        """return a list of databricks cluster
+
+        Returns: a list of clusters if any otherwise None
+
+        """
+        return [each_cluster for each_cluster in self.client.clusters.list()]
+
+    @_common_.exception_handler
+    def list_workspace_file(self, filepath):
+        return self.client.workspace.list(filepath)
+
+    @_common_.exception_handler
+    def upload_workspace_file(self, from_filepath: str, to_filepath: str, overwrite: bool = False):
+        print(from_filepath)
+        with open(from_filepath, 'rb') as f_in:
+            data = f_in.read()
+            print(data)
+            return self.client.workspace.upload(to_filepath, data, overwrite=overwrite)
+
+    @_common_.exception_handler
+    def job_run(self,
+                filepath: str,
+                job_parameters: dict
+                ) -> bool:
+
+        notebook_job = NotebookTask(notebook_path=filepath, base_parameters=base_parameters)
+        import time
+        cluster_id = "1018-221707-sgcnekrs"
+        run = self.client.jobs.submit(run_name=f'wf-test-run-job-name{time.time_ns()}',
+                            tasks=[
+                                SubmitTask(existing_cluster_id=cluster_id,
+                                           # spark_python_task=spark_python_job,
+                                           notebook_task=notebook_job,
+                                           task_key=f'task-test-run-job-name{time.time_ns()}')
+                            ]).result()
+        print(run)
+        return True
+
+    @_common_.exception_handler
+    def list_dbfs_file(self, filepath):
+        return self.client.dbutils.fs.ls(filepath)
+
+    @_common_.exception_handler
+    def list_dbfs_file(self, filepath):
+        pass
+
+
+
+
+
+    def billing_download_by_period(self, start_period: str = "2025-01", end_period: str = "2024-12"):
+
+        """
+
+            def download(self,
+                 start_month: str,
+                 end_month: str,
+                 *,
+
+        Args:
+            start_period:
+            end_period:
+
+        Returns:
+
+        """
+        billing = BillableUsageAPI(api_client=self.client.api_client)
+        print(billing)
+        print(dir(billing))
+
+        print(billing.download(start_period, end_period))
+        exit(0)
+
+
 
     @_common_.exception_handler
     def list_run_active(self,
@@ -444,6 +543,8 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                                   "job_id": job.job_id,
                                   "effective_budget_policy_id": job.effective_budget_policy_id})
         return user_jobs
+
+
 
 
 
