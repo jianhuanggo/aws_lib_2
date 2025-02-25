@@ -11,6 +11,7 @@ from inspect import currentframe
 from typing import List, Dict
 from _util import _util_file as _util_file_
 from _util import _util_directory as _util_directory_
+from _util import _util_string as _util_string_
 import re
 from jinja2 import Template
 from os import path
@@ -111,6 +112,7 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
             "auto_create":  False,
             "logger": logger
             }
+
         return self._connect(**_parameters)
 
         # def query(self, )
@@ -176,15 +178,80 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
         return [(col_def.name, col_def.args.get("kind")) for col_def in create_table.find_all(exp.ColumnDef)]
 
     @_common_.exception_handler
-    def get_select_from_create_stmt(self, database_name: str, table_name: str, logger: Log = None) -> str:
-        _columns_extraction_reformat = {"HLLSKETCH": "HLL_CARDINALITY"}
+    def get_column_names(self, database_name:str, table_name:str) -> list:
         create_sql_stmt = self.query(
             connect_obj=self.auto_connect(),
             query_string=f"SHOW TABLE {database_name}.{table_name}")
 
-        col_names = self.select_stmt_reformat(sql_command="create", sql_text=create_sql_stmt[0][0])
+        return self.select_stmt_reformat(sql_command="create", sql_text=create_sql_stmt[0][0])
+
+    @_common_.exception_handler
+    def get_select_from_create_stmt(self,
+                                    database_name: str,
+                                    table_name: str,
+                                    col_names: list[str],
+                                    additional_select: str,
+                                    logger: Log = None) -> str:
+
+        _columns_extraction_reformat = {"HLLSKETCH": "HLL_CARDINALITY"}
+
         col_names_reformat = [f"{_columns_extraction_reformat.get(str(col_type).upper(), '')}({col_name}) as {col_name}" if str(col_type).upper() == "HLLSKETCH" else col_name for col_name, col_type in col_names]
-        return f"select {','.join(col_names_reformat)} from {database_name}.{table_name}"
+        if additional_select:
+            if not additional_select.strip().startswith(","):
+                additional_select = " , " + additional_select
+
+        return f"select {','.join(col_names_reformat)} {additional_select} from {database_name}.{table_name}"
+
+    @_common_.exception_handler
+    def data_transformation_date_col_mapping(self,
+                                             statement: str,
+                                             lookup_key: str,
+                                             column_names: list[str] = None,
+                                             logger: Log = None) -> str:
+        """
+            used by notebook_convert_redshift_tubibricks_history_load_prod.py to auto detect time column used for
+        partition key since not all the tables have ds column.
+        for example, retention_sketch_monthly_byplatform_bycountry has a column called ms instead of ds because it is monthly table
+        Args:
+            statement: the statement which need to modified
+            lookup_key: the string which needs to be replaced
+            column_names: validate against existing column to see if this existed
+            logger: log file
+
+        Returns: the new statement with new valid column included
+        """
+
+        if lookup_key in column_names: return statement
+        metastore = _common_.MetaDataStore("tubibricks_history_load_prod_partition_key_date_col_mapping")
+
+        # exit(0)
+        # print(metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"])
+        # exit(0)
+        if lookup_key not in metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"]:
+
+            _common_.error_logger(currentframe().f_code.co_name,
+                                  f"lookup key '{lookup_key}' not found\nto add mapping, "
+                                  f"to add mapping pair, please run python apply_mapping.py --tag_name {_util_string_.generate_tag('tubibricks_history_load_prod_partition_key_date_col_mapping')} --key <key> --value <value> \n"
+                                  f"for example:\n"
+                                  f"python apply_mapping.py --tag_name {_util_string_.generate_tag('tubibricks_history_load_prod_partition_key_date_col_mapping')} --key ds --value ms \n",
+                                  logger=logger,
+                                  mode="error",
+                                  ignore_flag=False)
+
+        # print(metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"])
+
+        new_column_name = ""
+        if len(column_names) > 0:
+            for each_col_name in metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"].get(lookup_key, []):
+                if each_col_name in column_names:
+                    new_column_name = each_col_name
+                    break
+        else:
+            new_column_name = metastore.get(lookup_key, [])[0]
+
+        statement = statement.replace(lookup_key, new_column_name)
+
+        return statement
 
 
 

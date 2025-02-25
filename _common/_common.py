@@ -3,11 +3,16 @@ import os.path
 import time
 import inspect
 from sys import exit
+from collections import defaultdict
 from functools import wraps
+import base64
+from pyspark.sql.connect.functions import base64
 from _util import _util_file
 from logging import Logger as Log
 from typing import TypeVar, Callable, Any
 from _common import _common as _common_
+from _util import _util_directory as _util_directory_
+from _util import _util_file as _util_file_
 
 
 RT = TypeVar("RT")
@@ -189,3 +194,45 @@ def cache_result(filepath: str):
     return wrapper
 
 
+class MetaDataStore:
+    def __init__(self, store_name: str):
+        self.metadata_store = {}
+        self.store_name = store_name
+        self.default_dir = os.path.join("__data", self.store_name)
+        _util_directory_.create_directory(self.default_dir)
+        self.metadata_store[self.store_name] = self.load()
+
+
+    @_common_.exception_handler
+    def add(self, store_name, key, value) -> bool:
+        self.metadata_store[store_name][key] = value
+        return True
+
+    @_common_.exception_handler
+    def get(self, store_name, key) -> str:
+        return self.metadata_store.get(store_name, {}).get(key, "")
+
+    @_common_.exception_handler
+    def save(self) -> bool:
+        _util_file_.json_dump(os.path.join(self.default_dir, "metadata_store.json"), self.metadata_store[self.store_name])
+        return True
+
+    @_common_.exception_handler
+    def load(self) -> dict:
+        default_dir = os.path.join("__data", self.store_name)
+        try:
+            return _util_file_.json_load(os.path.join(default_dir, "metadata_store.json"))
+        except Exception as err:
+            return {}
+
+
+# from _util import _util_helper as _util_helper_
+# @_util_helper_.convert_flag(write_flg=True, output_filepath="apply_mapping.py")
+def apply_mapping(tag_name: str, key: str, value: str) -> bool:
+    from _common import _common as _common_
+    from _util import _util_string as _util_string_
+    tag_name = _util_string_.apply_tag(tag_name)
+    metadata = _common_.MetaDataStore(tag_name)
+    metadata.metadata_store[tag_name][key] = metadata.metadata_store[tag_name].get(key, []) + [value]
+    metadata.save()
+    return True

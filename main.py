@@ -1,7 +1,7 @@
 import json
 import xxlimited
 
-
+from airflow.providers.fab.auth_manager.models import metadata
 from pandas.core.computation.expressions import where
 from pyarrow import table
 from sympy import collect
@@ -1446,37 +1446,48 @@ def redshift_history_load(profile_name: str,
                           database_name: str,
                           table_name: str):
 
+
+
     from tubi.databricks import Redshift
+
+
 
     environment_map = {
         "config_dev": {
             "task_key": "tubibricks_dev",
             "bucket_name": "tubi-redshift-tempdir-production",
-            "database": "tubidw_dev"
+            "database": "tubidw_dev",
+            "schema_name": "tubidw",
         },
         "config_prod": {
             "task_key": "tubibricks",
             "bucket_name": "tubi-redshift-tempdir-production",
-            "database": "tubidw"
+            "database": "tubidw",
+            "schema_name": "tubidw",
 
         }
     }
+
 
     base_parameters = environment_map.get(profile_name, environment_map.get(profile_name))
 
     _config = _config_.ConfigSingleton(profile_name=profile_name)
     _config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"] = base_parameters.get("bucket_name")
-    _config.config["REDSHIFT_MIGRATION_S3_FILEPATH"] = base_parameters.get("database")
+    _config.config["REDSHIFT_MIGRATION_S3_FILEPATH"] = base_parameters.get("task_key")
 
     _config.config["REDSHIFT_MIGRATION_DB_DATABASE_NAME"] = base_parameters.get("database")
-    _config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"] = base_parameters.get("database")
+    _config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"] = base_parameters.get("schema_name")
     _config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"] = table_name
     _config.config["REDSHIFT_MIGRATION_PARTITION_BY"] = ""
 
 
     redshift_obj = _connect_.get_directive("redshift", profile_name)
-
-    table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name)
+    col_names = redshift_obj.get_column_names(database_name=database_name, table_name=table_name)
+    # print(col_names)
+    # exit(0)
+    # dev version
+    #     table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name)
+    table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name, col_names=col_names, additional_select=redshift_obj.data_transformation_date_col_mapping(statement="date(date_trunc(''day'', ds))", lookup_key="ds",  column_names=[x[0] for x in col_names]))
 
     redshift_query = f"""UNLOAD ('{table_history_query_sql}')
     TO 's3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/' iam_role 'arn:aws:iam::370025973162:role/tubi-redshift-production'
@@ -1507,13 +1518,42 @@ def redshift_history_load(profile_name: str,
     # print([each_prefix for each_prefix in aws_object.list_objects(bucket_name="tubi-redshift-tempdir-production", prefix="") if each_prefix.startswith("tubi-redshift-")])
 
     print(redshift_query)
-    base_parameters["redshift_select_query"]
+    base_parameters["redshift_select_query"] = "blablabla"
+    base_parameters["table_name"] = table_name
+    base_parameters["redshift_query_entire_context"] = redshift_query
+    base_parameters["databricks_query_entire_context"] = "place_holder"
+    cluster_id = "1018-221707-sgcnekrs"
+    filepath = "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py"
+    if profile_name == "config_prod":
+        base_parameters["database"] = "tubidw"
+        cluster_id = "0320-172648-4s9hf5og"
+        filepath = "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py"
+    elif profile_name == "config_dev":
+        base_parameters["database"] = "tubidw_dev"
+
+
+    print(base_parameters)
+
+
+    # if not table_name:
+    #     raise Exception("table name is required")
+    #
+    # if not redshift_query_entire_context:
+    #     raise Exception("redshift query entire context is required")
+    #
+    # if not databricks_query_entire_context:
+
     databricks_obj = _connect_.get_directive("databricks_sdk", profile_name)
-    databricks_obj.job_run("/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py",
+
+    databricks_obj.job_run(cluster_id=cluster_id,
+                           filepath=filepath,
                            job_parameters=base_parameters)
+    # def job_run(self,
+    #             filepath: str,
+    #             job_parameters: dict
+    #             ) -> bool:
 
-
-
+    exit(0)
 
 
 
@@ -1522,7 +1562,7 @@ def redshift_history_load(profile_name: str,
 
 
     # redshift_obj.query(redshift_obj.auto_connect(), redshift_query)
-    exit(0)
+
     #
     # print(redshift_query)
     # print("\n" * 10)
@@ -1569,9 +1609,9 @@ def list_files():
 
 def workspace_upload():
     from _connect import _connect as _connect_
-    databricks_obj = _connect_.get_directive("databricks_sdk", "config_dev")
-    databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load.py",
-                                         "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py", overwrite=True)
+    databricks_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
+                                         "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py", overwrite=True)
 
 
 def run_spark_jobs():
@@ -1580,9 +1620,51 @@ def run_spark_jobs():
     databricks_obj.job_run("/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py")
 
 
+# from _util import _util_helper as _util_helper_
+# @_util_helper_.convert_flag(write_flg=True, output_filepath="apply_mapping.py")
+def apply_mapping(tag_name: str, key: str, value: str) -> bool:
+
+    from _common import _common as _common_
+    _common_.apply_mapping(tag_name=tag_name, key=key, value=value)
+    return True
+
+
 
 
 if __name__ == '__main__':
+    redshift_history_load(profile_name="config_prod",
+                          database_name="tubidw",
+                          table_name="retention_sketch_monthly_byplatform_bycountry")
+    exit(0)
+
+    # apply_mapping("dHViaWJyaWNrc19oaXN0b3J5X2xvYWRfcHJvZF9wYXJ0aXRpb25fa2V5X2RhdGVfY29sX21hcHBpbmc=", "ds", "ms")
+    # exit(0)
+
+
+    redshift_history_load(profile_name="config_prod",
+                          database_name="tubidw",
+                          table_name="retention_sketch_monthly_byplatform_bycountry")
+    exit(0)
+    workspace_upload()
+    exit(0)
+    redshift_history_load(profile_name="config_dev",
+                          database_name="tubidw",
+                          table_name="retention_sketch_monthly_byplatform_bycountry")
+    exit(0)
+    redshift_history_load(profile_name="config_dev",
+                          database_name="tubidw",
+                          table_name="deeplink_weekly_bycountry_byplatform_bytype")
+    exit(0)
+
+
+    redshift_history_load(profile_name="config_dev",
+                          database_name="tubidw",
+                          table_name="deeplink_daily_bycountry_byplatform_bytype")
+    exit(0)
+    redshift_history_load(profile_name="config_dev",
+                          database_name="tubidw",
+                          table_name="retention_sketch_monthly_byplatform_bycountry")
+    exit(0)
     run_spark_jobs()
     exit(0)
     workspace_upload()

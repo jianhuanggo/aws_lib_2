@@ -98,13 +98,13 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
     @_common_.exception_handler
     def job_run(self,
+                cluster_id: str,
                 filepath: str,
                 job_parameters: dict
                 ) -> bool:
 
-        notebook_job = NotebookTask(notebook_path=filepath, base_parameters=base_parameters)
+        notebook_job = NotebookTask(notebook_path=filepath, base_parameters=job_parameters)
         import time
-        cluster_id = "1018-221707-sgcnekrs"
         run = self.client.jobs.submit(run_name=f'wf-test-run-job-name{time.time_ns()}',
                             tasks=[
                                 SubmitTask(existing_cluster_id=cluster_id,
@@ -122,8 +122,6 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
     @_common_.exception_handler
     def list_dbfs_file(self, filepath):
         pass
-
-
 
 
 

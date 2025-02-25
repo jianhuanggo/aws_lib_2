@@ -1,3 +1,4 @@
+import base64
 from _common import _common as _common_
 from _util import _util_file
 
@@ -34,3 +35,12 @@ def search_replace(dirpath: str, search_string: str, replace_string: str = "") -
             file_str = _util_file.identity_load_file(each_file)
             _common_.info_logger(f"after the change, impacted areas looks like below:\n\n {file_str[index - border_view_buffer: index + str_len + border_view_buffer]}")
     return True
+
+
+@_common_.exception_handler
+def generate_tag(tag_name: str) -> str:
+    return base64.b64encode(tag_name.encode()).decode()
+
+@_common_.exception_handler
+def apply_tag(encoded_tag_name: str) -> str:
+    return base64.b64decode(encoded_tag_name).decode()
