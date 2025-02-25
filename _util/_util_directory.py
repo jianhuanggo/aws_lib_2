@@ -6,7 +6,7 @@ from _common import _common as _common_
 from pathlib import Path
 
 
-@_common_.exception_handler
+
 def create_directory(dirpath: str, logger: Log = None) -> bool:
     try:
         o_umask = os.umask(0)
@@ -34,7 +34,7 @@ def create_directory(dirpath: str, logger: Log = None) -> bool:
 
     return True
 
-@_common_.exception_handler
+
 def remove_directory(dirpath: str, logger: Log = None) -> bool:
     try:
         shutil.rmtree(dirpath)
@@ -46,7 +46,7 @@ def remove_directory(dirpath: str, logger: Log = None) -> bool:
                              mode="error",
                              ignore_flag=True)
 
-@_common_.exception_handler
+
 def is_dir_exist(dirpath: str, logger: Log = None) -> bool:
     return Path(dirpath).is_dir()
 
