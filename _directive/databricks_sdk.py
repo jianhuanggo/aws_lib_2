@@ -1,5 +1,6 @@
 import json
 from datetime import time
+import time
 from inspect import currentframe
 from typing import List, Dict, Tuple, Iterator, Union
 from venv import logger
@@ -98,20 +99,44 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
     @_common_.exception_handler
     def job_run(self,
+                job_name: str,
+                job_type: str,
                 cluster_id: str,
                 filepath: str,
                 job_parameters: dict
                 ) -> bool:
+        """this function is responsible for running a job
 
-        notebook_job = NotebookTask(notebook_path=filepath, base_parameters=job_parameters)
-        import time
-        run = self.client.jobs.submit(run_name=f'wf-test-run-job-name{time.time_ns()}',
-                            tasks=[
-                                SubmitTask(existing_cluster_id=cluster_id,
-                                           # spark_python_task=spark_python_job,
-                                           notebook_task=notebook_job,
-                                           task_key=f'task-test-run-job-name{time.time_ns()}')
-                            ]).result()
+        Args:
+            job_name:
+            job_type:
+            cluster_id:
+            filepath:
+            job_parameters:
+
+        Returns:
+
+        """
+        _parameters = {
+            "task_key": f"task-{job_name}"
+        }
+        if job_type == "notebook":
+            _job = NotebookTask(notebook_path=filepath, base_parameters=job_parameters)
+            _parameters["notebook_task"] = _job
+        elif job_type == "spark":
+            _job = SparkPythonTask(python_file=filepath, parameters=job_parameters)
+            _parameters["spark_python_task"] = _job
+
+        if cluster_id:
+            _parameters["existing_cluster_id"] = cluster_id
+            # tasks = [
+            #     SubmitTask(existing_cluster_id=cluster_id,
+            #                # spark_python_task=spark_python_job,
+            #                notebook_task=notebook_job,
+            #                task_key=f'task-test-run-job-name{time.time_ns()}')
+            # ]
+        run = self.client.jobs.submit(run_name=f"wf-{job_name}",
+                                      tasks=[SubmitTask(**_parameters)]).result()
         print(run)
         return True
 
