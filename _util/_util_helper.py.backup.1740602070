@@ -179,7 +179,6 @@ def get_file_basename(filename: str) -> str:
 
 def convert_flag(write_flg: bool = False, output_filepath: str = "") -> Callable:
     python_root = os.environ.get('PYTHONPATH', '') or sys.prefix
-    code_generation_flag = True
 
     if _util_file_.is_file_exist(output_filepath):
         _common_.error_logger(currentframe().f_code.co_name,
@@ -267,9 +266,8 @@ if __name__ == "__main__":
                 _common_.info_logger(f"to start a sample run, you can use following command:\n\n"
                                      f"{_sample_msg}")
             else:
-                ret = func(*args, **kwargs)
-                _common_.info_logger(f"return message from cli: {ret}")
-                return True
+                return sub_func(func, *args, **kwargs)
         return sub_func
 
     return convert
+

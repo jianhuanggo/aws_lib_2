@@ -90,12 +90,12 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         return self.client.workspace.list(filepath)
 
     @_common_.exception_handler
-    def upload_workspace_file(self, from_filepath: str, to_filepath: str, overwrite: bool = False):
-        print(from_filepath)
-        with open(from_filepath, 'rb') as f_in:
+    def upload_workspace_file(self, from_local_filepath: str, to_workspace_filepath: str, overwrite: bool = False) -> bool:
+        with open(from_local_filepath, 'rb') as f_in:
             data = f_in.read()
-            print(data)
-            return self.client.workspace.upload(to_filepath, data, overwrite=overwrite)
+            self.client.workspace.upload(to_workspace_filepath, data, overwrite=overwrite)
+        _common_.info_logger(f"successfully uploaded filepath {from_local_filepath} to workspace location {to_workspace_filepath}")
+        return True
 
     @_common_.exception_handler
     def job_run(self,
