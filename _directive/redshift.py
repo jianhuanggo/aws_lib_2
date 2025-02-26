@@ -204,15 +204,16 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
 
     @_common_.exception_handler
     def data_transformation_date_col_mapping(self,
+                                             metadata_store_key: str,
                                              statement: str,
                                              lookup_key: str,
                                              column_names: list[str] = None,
                                              logger: Log = None) -> str:
-        """
-            used by notebook_convert_redshift_tubibricks_history_load_prod.py to auto detect time column used for
+        """ used by notebook_convert_redshift_tubibricks_history_load_prod.py to auto detect time column used for
         partition key since not all the tables have ds column.
         for example, retention_sketch_monthly_byplatform_bycountry has a column called ms instead of ds because it is monthly table
         Args:
+            metadata_store_key: key to metadata store
             statement: the statement which need to modified
             lookup_key: the string which needs to be replaced
             column_names: validate against existing column to see if this existed
@@ -221,19 +222,20 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
         Returns: the new statement with new valid column included
         """
 
-        if lookup_key in column_names: return statement
-        metastore = _common_.MetaDataStore("tubibricks_history_load_prod_partition_key_date_col_mapping")
+        from _search import _fuzz_search
 
-        # exit(0)
-        # print(metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"])
-        # exit(0)
-        if lookup_key not in metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"]:
+        if lookup_key in column_names: return statement
+        metastore = _common_.MetaDataStore(metadata_store_key)
+
+        print(lookup_key, metastore.metadata_store[metadata_store_key])
+
+        if lookup_key not in metastore.metadata_store[metadata_store_key]:
 
             _common_.error_logger(currentframe().f_code.co_name,
                                   f"lookup key '{lookup_key}' not found\nto add mapping, "
-                                  f"to add mapping pair, please run python apply_mapping.py --tag_name {_util_string_.generate_tag('tubibricks_history_load_prod_partition_key_date_col_mapping')} --key <key> --value <value> \n"
+                                  f"to add mapping pair, please run python apply_mapping.py --tag_name {_util_string_.generate_tag(metadata_store_key)} --key <key> --value <value> \n"
                                   f"for example:\n"
-                                  f"python apply_mapping.py --tag_name {_util_string_.generate_tag('tubibricks_history_load_prod_partition_key_date_col_mapping')} --key ds --value ms \n",
+                                  f"python apply_mapping.py --tag_name {_util_string_.generate_tag(metadata_store_key)} --key ds --value ms \n",
                                   logger=logger,
                                   mode="error",
                                   ignore_flag=False)
@@ -242,12 +244,33 @@ class DirectiveRedshift(metaclass=_meta_.MetaDirective):
 
         new_column_name = ""
         if len(column_names) > 0:
-            for each_col_name in metastore.metadata_store["tubibricks_history_load_prod_partition_key_date_col_mapping"].get(lookup_key, []):
+            for each_col_name in metastore.metadata_store[metadata_store_key].get(lookup_key, []):
                 if each_col_name in column_names:
                     new_column_name = each_col_name
                     break
         else:
-            new_column_name = metastore.get(lookup_key, [])[0]
+            new_column_name = metastore.metadata_store[metadata_store_key].get(lookup_key, [])[0]
+
+        if not new_column_name:
+
+            possible_cols = []
+            for each_column in column_names:
+                if _fuzz_search.fuzzysearch(sequence=lookup_key, query=each_column, max_dist=1):
+                    possible_cols.append(each_column)
+
+            match_col = possible_cols[0] if len(possible_cols) > 0 else ""
+
+            msg = f"here is possible matches {possible_cols} " if len(possible_cols) > 0 else "no possible matching"
+
+            _common_.error_logger(currentframe().f_code.co_name,
+                                  f"interested '{lookup_key}' not found in the column list. the current mapping for {lookup_key}:  {metastore.metadata_store.get(metadata_store_key, {}).get(lookup_key, [])}"
+                                  f"\nto add mapping, {msg}"
+                                  f"to add mapping pair, please run python apply_mapping.py --tag_name {_util_string_.generate_tag(metadata_store_key)} --key <key> --value <value> \n"
+                                  f"for example:\n"
+                                  f"python apply_mapping.py --tag_name {_util_string_.generate_tag(metadata_store_key)} --key {lookup_key} --value {match_col if match_col else 'ds'} \n",
+                                  logger=logger,
+                                  mode="error",
+                                  ignore_flag=False)
 
         statement = statement.replace(lookup_key, new_column_name)
 

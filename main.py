@@ -1458,12 +1458,14 @@ def redshift_history_load(profile_name: str,
             "bucket_name": "tubi-redshift-tempdir-production",
             "database": "tubidw_dev",
             "schema_name": "tubidw",
+            "partition_by": "",
         },
         "config_prod": {
             "task_key": "tubibricks",
             "bucket_name": "tubi-redshift-tempdir-production",
             "database": "tubidw",
             "schema_name": "tubidw",
+            "partition_by": "ds",
 
         }
     }
@@ -1478,7 +1480,7 @@ def redshift_history_load(profile_name: str,
     _config.config["REDSHIFT_MIGRATION_DB_DATABASE_NAME"] = base_parameters.get("database")
     _config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"] = base_parameters.get("schema_name")
     _config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"] = table_name
-    _config.config["REDSHIFT_MIGRATION_PARTITION_BY"] = ""
+    _config.config["REDSHIFT_MIGRATION_PARTITION_BY"] = base_parameters.get("partition_by")
 
 
     redshift_obj = _connect_.get_directive("redshift", profile_name)
@@ -1487,14 +1489,14 @@ def redshift_history_load(profile_name: str,
     # exit(0)
     # dev version
     #     table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name)
-    table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name, col_names=col_names, additional_select=redshift_obj.data_transformation_date_col_mapping(statement="date(date_trunc(''day'', ds))", lookup_key="ds",  column_names=[x[0] for x in col_names]))
-
+    table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name, col_names=col_names, additional_select=redshift_obj.data_transformation_date_col_mapping(statement="date(date_trunc(''day'', ds)) ", lookup_key="ds",  column_names=[x[0] for x in col_names]) + " as ds")
+    # table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name, table_name=table_name, col_names=col_names, additional_select=", ms as ds")
     redshift_query = f"""UNLOAD ('{table_history_query_sql}')
     TO 's3://{_config.config["REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD"]}/{_config.config["REDSHIFT_MIGRATION_S3_FILEPATH"]}/{_config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"]}/{_config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"]}/' iam_role 'arn:aws:iam::370025973162:role/tubi-redshift-production'
     format parquet CLEANPATH"""
 
     if _config.config["REDSHIFT_MIGRATION_PARTITION_BY"]:
-        redshift_query += f" PARTITIONED BY ({_config.config['REDSHIFT_MIGRATION_PARTITION_BY']})"
+        redshift_query += f" PARTITION BY ({_config.config['REDSHIFT_MIGRATION_PARTITION_BY']})"
 
 
 
@@ -1530,6 +1532,7 @@ def redshift_history_load(profile_name: str,
         filepath = "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py"
     elif profile_name == "config_dev":
         base_parameters["database"] = "tubidw_dev"
+
 
 
     print(base_parameters)
@@ -1631,7 +1634,32 @@ def apply_mapping(tag_name: str, key: str, value: str) -> bool:
 
 
 
+
+def run_hl_redshift_to_tubibricks(
+        profile_name: str,
+        database_name: str,
+        table_name: str,
+        cluster_id: str
+        ):
+
+    from _project import hl_redshift_to_tubibricks
+    hl_redshift_to_tubibricks.hl_redshift_to_tubibricks(
+        profile_name=profile_name,
+        database_name=database_name,
+        table_name=table_name,
+        cluster_id=cluster_id
+    )
+
+
 if __name__ == '__main__':
+    run_hl_redshift_to_tubibricks(
+        profile_name="config_prod",
+        database_name="tubidw",
+        cluster_id="0320-172648-4s9hf5og",
+        table_name="retention_sketch_monthly_byplatform_bycountry"
+    )
+
+    exit(0)
     redshift_history_load(profile_name="config_prod",
                           database_name="tubidw",
                           table_name="retention_sketch_monthly_byplatform_bycountry")
