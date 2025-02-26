@@ -5,13 +5,12 @@ from _config import config as _config_
 from _common import _common as _common_
 
 
-# from _util import _util_helper as _util_helper_
-# @_util_helper_.convert_flag(write_flg=True, output_filepath="hl_redshift_to_tubibricks.py")
+from _util import _util_helper as _util_helper_
+@_util_helper_.convert_flag(write_flg=True, output_filepath="hl_redshift_to_tubibricks.py")
 def hl_redshift_to_tubibricks(profile_name: str,
                               database_name: str,
                               table_name: str,
-                              cluster_id: str,
-                              logger: Log = None):
+                              cluster_id: str):
     """this function is responsible for perform history load from redshift to tubibricks
 
     Args:
@@ -56,8 +55,12 @@ def hl_redshift_to_tubibricks(profile_name: str,
     _config.config["REDSHIFT_MIGRATION_DB_DATABASE_NAME"] = base_parameters.get("database")
     _config.config["REDSHIFT_MIGRATION_DB_SCHEMA_NAME"] = base_parameters.get("schema_name")
     _config.config["REDSHIFT_MIGRATION_DB_TABLE_NAME"] = table_name
+
+    # the data which we partition by
     _config.config["REDSHIFT_MIGRATION_PARTITION_BY"] = base_parameters.get("partition_by")
 
+    # the name of partition column and the data which we partition by can be different, this is
+    _config.config["REDSHIFT_MIGRATION_PARTITION_COL_NAME"] = "date"
 
     redshift_obj = _connect_.get_directive("redshift", profile_name)
     col_names = redshift_obj.get_column_names(database_name=database_name, table_name=table_name)
@@ -68,7 +71,7 @@ def hl_redshift_to_tubibricks(profile_name: str,
         table_history_query_sql = redshift_obj.get_select_from_create_stmt(database_name=database_name,
                                                                            table_name=table_name,
                                                                            col_names=col_names,
-                                                                           additional_select=redshift_obj.data_transformation_date_col_mapping(metadata_store_key="tubibricks_history_load_prod_partition_key_date_col_mapping", statement="date(date_trunc(''day'', ds)) ", lookup_key="ds",  column_names=[x[0] for x in col_names]) + " as ds")
+                                                                           additional_select=redshift_obj.data_transformation_date_col_mapping(metadata_store_key="tubibricks_history_load_prod_partition_key_date_col_mapping", statement="date(date_trunc(''day'', ds)) ", lookup_key="ds",  column_names=[x[0] for x in col_names]) + f" as {_config.config['REDSHIFT_MIGRATION_PARTITION_COL_NAME']}")
 
 
     s3_temp_location = f"s3://{_config.config['REDSHIFT_MIGRATION_S3_BUCKET_NAME_TEMPDIR_PROD']}/{_config.config['REDSHIFT_MIGRATION_S3_FILEPATH']}/{_config.config['REDSHIFT_MIGRATION_DB_SCHEMA_NAME']}/__{_config.config['REDSHIFT_MIGRATION_DB_TABLE_NAME']}__/"

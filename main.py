@@ -1610,11 +1610,21 @@ def list_files():
     for each_file in databricks_obj.list_workspace_file("/Users/jian.huang@tubi.tv/scripts"):
         print(each_file)
 
+
+"""
+
+"""
+
+
 def workspace_upload():
-    from _connect import _connect as _connect_
-    databricks_obj = _connect_.get_directive("databricks_sdk", "config_prod")
-    databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
-                                         "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py", overwrite=True)
+    from _databricks import _cli_source
+    _cli_source.databricks_upload_workspace_file(profile_name="config_prod",
+                                 from_local_filepath="/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
+                                 to_workspace_filepath="/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py"
+                                                 )
+    # databricks_obj = _connect_.get_directive("databricks_sdk", "config_prod")
+    # databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
+    #                                      "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py", overwrite=True)
 
 
 def run_spark_jobs():
@@ -1652,6 +1662,16 @@ def run_hl_redshift_to_tubibricks(
 
 
 if __name__ == '__main__':
+    run_hl_redshift_to_tubibricks(
+        profile_name="config_prod",
+        database_name="tubidw",
+        cluster_id="0320-172648-4s9hf5og",
+        table_name="retention_sketch_daily_byplatform_bycountry"
+    )
+
+    exit(0)
+    workspace_upload()
+    exit(0)
     run_hl_redshift_to_tubibricks(
         profile_name="config_prod",
         database_name="tubidw",
