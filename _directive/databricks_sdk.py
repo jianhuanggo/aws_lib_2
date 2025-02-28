@@ -19,6 +19,7 @@ from _common import _common as _common_
 from _config import config as _config_
 from logging import Logger as Log
 from databricks.sdk.service.jobs import BaseJob, Wait, SparkPythonTask, SubmitTask, RunNow, NotebookTask
+from databricks.sdk.service import compute
 from _util import _util_file as _util_file_
 from os import path
 from task import task_completion
@@ -97,13 +98,17 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         _common_.info_logger(f"successfully uploaded filepath {from_local_filepath} to workspace location {to_workspace_filepath}")
         return True
 
+    def get_job_cluster(self):
+        pass
+
+
     @_common_.exception_handler
     def job_run(self,
                 job_name: str,
                 job_type: str,
-                cluster_id: str,
                 filepath: str,
-                job_parameters: dict
+                job_parameters: dict,
+                cluster_id: str = ""
                 ) -> bool:
         """this function is responsible for running a job
 
@@ -120,6 +125,21 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         _parameters = {
             "task_key": f"task-{job_name}"
         }
+        """
+        ON_DEMAND = "ON_DEMAND"
+        SPOT = "SPOT"
+        SPOT_WITH_FALLBACK = "SPOT_WITH_FALLBACK"
+        """
+        _new_cluster_spec : compute.ClusterSpec = {
+            "spark_version": "15.4.x-scala2.12",
+            "node_type_id": "r5d.8xlarge",
+            "num_workers": 8,
+            "aws_attributes": {
+                "instance_profile_arn": "aaaa",
+                "availability": "SPOT"
+            },
+            "spark_env_vars": {"PYSPARK_PYTHON": "/databricks/python3/bin/python3"}
+        }
         if job_type == "notebook":
             _job = NotebookTask(notebook_path=filepath, base_parameters=job_parameters)
             _parameters["notebook_task"] = _job
@@ -129,6 +149,8 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
         if cluster_id:
             _parameters["existing_cluster_id"] = cluster_id
+        else:
+            _parameters["new_cluster"] = _new_cluster_spec
             # tasks = [
             #     SubmitTask(existing_cluster_id=cluster_id,
             #                # spark_python_task=spark_python_job,
@@ -566,6 +588,10 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                                   "job_id": job.job_id,
                                   "effective_budget_policy_id": job.effective_budget_policy_id})
         return user_jobs
+
+
+
+
 
 
 

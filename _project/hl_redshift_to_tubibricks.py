@@ -10,7 +10,11 @@ from _util import _util_helper as _util_helper_
 def hl_redshift_to_tubibricks(profile_name: str,
                               database_name: str,
                               table_name: str,
-                              cluster_id: str):
+                              cluster_id: str,
+                              logger: Log = None):
+    # print("AAAAA")
+    # print(logger)
+    # exit(0)
     """this function is responsible for perform history load from redshift to tubibricks
 
     Args:
@@ -82,12 +86,13 @@ def hl_redshift_to_tubibricks(profile_name: str,
     format parquet CLEANPATH"""
 
     if _config.config["REDSHIFT_MIGRATION_PARTITION_BY"]:
-        redshift_query += f" PARTITION BY ({_config.config['REDSHIFT_MIGRATION_PARTITION_BY']})"
+        redshift_query += f" PARTITION BY ({_config.config['REDSHIFT_MIGRATION_PARTITION_COL_NAME']})"
 
     _common_.info_logger(f"redshift sql query is: {redshift_query}", logger=logger)
 
     base_parameters["table_name"] = table_name
     base_parameters["redshift_query_entire_context"] = redshift_query
+    base_parameters["partition_column_name"] = _config.config["REDSHIFT_MIGRATION_PARTITION_COL_NAME"]
     base_parameters["databricks_query_entire_context"] = "place_holder"
     # cluster_id = "1018-221707-sgcnekrs"
     filepath = "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load.py"
@@ -101,7 +106,7 @@ def hl_redshift_to_tubibricks(profile_name: str,
 
     _common_.info_logger(f"parameters passing to the notebook: {base_parameters}", logger=logger)
     databricks_obj = _connect_.get_directive("databricks_sdk", profile_name)
-
+    cluster_id = None
     databricks_obj.job_run(job_name=f"redshift-mig-{table_name}-{environment_map.get(profile_name, {}).get('environment')}-{time.time_ns()}"[:95],
                            job_type="notebook",
                            cluster_id=cluster_id,
