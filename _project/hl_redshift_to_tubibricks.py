@@ -99,7 +99,7 @@ def hl_redshift_to_tubibricks(profile_name: str,
 
     if profile_name == "config_prod":
         base_parameters["database"] = "tubidw"
-        # cluster_id = "0320-172648-4s9hf5og"
+        cluster_id = "0320-172648-4s9hf5og"
         filepath = "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py"
     elif profile_name == "config_dev":
         base_parameters["database"] = "tubidw_dev"
@@ -107,6 +107,11 @@ def hl_redshift_to_tubibricks(profile_name: str,
     _common_.info_logger(f"parameters passing to the notebook: {base_parameters}", logger=logger)
     databricks_obj = _connect_.get_directive("databricks_sdk", profile_name)
     cluster_id = None
+
+    # databricks_obj.get_job_cluster_info(cluster_id=cluster_id)
+    # exit(0)
+
+
     databricks_obj.job_run(job_name=f"redshift-mig-{table_name}-{environment_map.get(profile_name, {}).get('environment')}-{time.time_ns()}"[:95],
                            job_type="notebook",
                            cluster_id=cluster_id,
