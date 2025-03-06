@@ -98,8 +98,8 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         _common_.info_logger(f"successfully uploaded filepath {from_local_filepath} to workspace location {to_workspace_filepath}")
         return True
 
-    def get_job_cluster(self):
-        pass
+    def get_job_cluster_info(self, cluster_id: str):
+        print(self.client.clusters.get(cluster_id))
 
 
     @_common_.exception_handler
@@ -122,6 +122,7 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         Returns:
 
         """
+
         _parameters = {
             "task_key": f"task-{job_name}"
         }
@@ -129,17 +130,58 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         ON_DEMAND = "ON_DEMAND"
         SPOT = "SPOT"
         SPOT_WITH_FALLBACK = "SPOT_WITH_FALLBACK"
+        
+        arn:aws:iam::650305045777:role/tubi-databricks-e2-production-dw-sparknode
+        
+        
+        arn:aws:iam::650305045777:instance-profile/tubi-databricks-e2-production-dw-sparknode
+        aws_attributes=AwsAttributes(availability=<AwsAvailability.SPOT_WITH_FALLBACK: 
+        'SPOT_WITH_FALLBACK'>, ebs_volume_count=None, ebs_volume_iops=None, 
+        ebs_volume_size=None, ebs_volume_throughput=None, ebs_volume_type=None, 
+        first_on_demand=1, 
+        instance_profile_arn='arn:aws:iam::650305045777:instance-profile/tubi-databricks-e2-production-dw-sparknode', 
+        spot_bid_price_percent=100, zone_id='auto')
+        
+           "spark_version": "15.4.x-scala2.12",
+           
+                       "node_type_id": "r5d.8xlarge",
+           
+           
         """
-        _new_cluster_spec : compute.ClusterSpec = {
-            "spark_version": "15.4.x-scala2.12",
-            "node_type_id": "r5d.8xlarge",
-            "num_workers": 8,
-            "aws_attributes": {
-                "instance_profile_arn": "aaaa",
-                "availability": "SPOT"
-            },
-            "spark_env_vars": {"PYSPARK_PYTHON": "/databricks/python3/bin/python3"}
-        }
+        _new_cluster_spec : compute.ClusterSpec = compute.ClusterSpec(**{
+            "spark_version": "14.3.x-scala2.12",
+            "node_type_id": "r7gd.16xlarge",
+            "num_workers": 1,
+            "aws_attributes": compute.AwsAttributes(**{
+                "instance_profile_arn": "arn:aws:iam::650305045777:instance-profile/tubi-databricks-e2-production-dw-sparknode",
+                "availability": compute.AwsAvailability.SPOT_WITH_FALLBACK,
+                "first_on_demand": 1,
+                "spot_bid_price_percent": 100,
+                "zone_id": 'auto'
+            }),
+            # "spark_env_vars": {"PYSPARK_PYTHON": "/databricks/python3/bin/python3"}
+        })
+
+
+        # print(dir(_new_cluster_spec))
+        # print(hasattr(_new_cluster_spec, "as_dict"))
+        # print(_new_cluster_spec.as_dict())
+        # print("AAAADDD")
+        # exit(0)
+        # print(_new_cluster_spec.as_dict())
+
+
+        # _new_cluster_spec = {
+        #     "spark_version": "15.4.x-scala2.12",
+        #     "node_type_id": "r5d.8xlarge",
+        #     "num_workers": 8,
+        #     # "aws_attributes": {
+        #     #     "instance_profile_arn": "aaaa",
+        #     #     "availability": "SPOT"
+        #     # },
+        #     # "spark_env_vars": {"PYSPARK_PYTHON": "/databricks/python3/bin/python3"}
+        # }
+
         if job_type == "notebook":
             _job = NotebookTask(notebook_path=filepath, base_parameters=job_parameters)
             _parameters["notebook_task"] = _job
@@ -157,10 +199,24 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
             #                notebook_task=notebook_job,
             #                task_key=f'task-test-run-job-name{time.time_ns()}')
             # ]
+        # print(dir(_parameters["new_cluster"]))
+        # print(SubmitTask(**_parameters).new_cluster)
+        from pprint import pprint
+        print(_parameters)
+
+        pprint(SubmitTask(**_parameters).as_dict())
+
+
+        # exit(0)
+        # print("AAAA")
+        # exit(0)
+
         run = self.client.jobs.submit(run_name=f"wf-{job_name}",
                                       tasks=[SubmitTask(**_parameters)]).result()
         print(run)
         return True
+
+
 
     @_common_.exception_handler
     def list_dbfs_file(self, filepath):

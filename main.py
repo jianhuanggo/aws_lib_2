@@ -1652,6 +1652,8 @@ def run_hl_redshift_to_tubibricks(
         cluster_id: str
         ):
 
+
+
     from _project import hl_redshift_to_tubibricks
     hl_redshift_to_tubibricks.hl_redshift_to_tubibricks(
         profile_name=profile_name,
@@ -1661,7 +1663,24 @@ def run_hl_redshift_to_tubibricks(
     )
 
 
+def t():
+    from _api import  _api_dbt_cloud
+
+    dbt_client =_api_dbt_cloud.DBTClient(token="dbtu_1_gFnhQ1uUnOe2NM_ZTOcQw9X3HnIRxq0KBxnS0supIkFnyefg")
+
+    # dbt_account = _api_dbt_cloud.DbtAccountClient(dbt_client)
+    # print(dbt_account.list_account())
+    # print(dbt_account)
+
+    dbt_job_client = _api_dbt_cloud.DbtJobClient(dbt_client)
+
+    print(dbt_job_client.return_list(dbt_job_client.list_job(account_id=862)))
+
+    exit(0)
+
 if __name__ == '__main__':
+    t()
+    exit(0)
     run_hl_redshift_to_tubibricks(
         profile_name="config_prod",
         database_name="tubidw",
