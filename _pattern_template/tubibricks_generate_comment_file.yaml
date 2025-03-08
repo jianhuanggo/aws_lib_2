@@ -1,9 +1,3 @@
-command_10:
-  _working_dir_: "{{ DW_HOME }}/dw"
-  _timeout_: "1800"
-  _command_:
-    - "cd {{ DW_HOME }}/dw/tubibricks && dbt run -m {{ MODEL_NAME }} --vars '{start_date: ''2024-01-01'', end_date: ''2023-12-01''}' --target {{ DEPLOYMENT_ENV }} --debug"
-
 command_20:
   _working_dir_: "/Users/jian.huang/anaconda3/envs/{{ PROJECT_ID }}/aws_lib_2"
   _command_:
