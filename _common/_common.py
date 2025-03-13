@@ -6,7 +6,6 @@ from sys import exit
 from collections import defaultdict
 from functools import wraps
 import base64
-from pyspark.sql.connect.functions import base64
 from _util import _util_file
 from logging import Logger as Log
 from typing import TypeVar, Callable, Any

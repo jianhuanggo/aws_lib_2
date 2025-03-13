@@ -632,6 +632,7 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                                           search_string=matches[0],
                                           replace_string=replace_string)
 
+    @_common_.exception_handler
     @_common_.cache_result("my_job_id.json")
     def get_jobs_by_username(self,
                              username: str = "",
@@ -644,6 +645,49 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
                                   "job_id": job.job_id,
                                   "effective_budget_policy_id": job.effective_budget_policy_id})
         return user_jobs
+
+    @_common_.exception_handler
+    def query(self, query_string: str, ignore_error_flg: bool=False, logger: Log = None):
+        """ execute sql in the databricks compute class and return the query result
+
+        Args:
+            query_string: query string
+            ignore_error_flg: ignore error if it is on otherwise raise
+            logger: logger object
+
+        Returns: query result in the pandas dataframe
+        """
+        from datetime import datetime
+        srcs = self.client.data_sources.list()
+        warehouse_id = self._config.config.get("DATABRICKS_WAREHOUSE_ID")
+
+        if not warehouse_id:
+            for src in srcs:
+                if src.name == "jhuang-history-1":
+                    warehouse_id = src.warehouse_id
+
+        statement_response = self.client.statement_execution.execute_statement(query_string, warehouse_id)
+
+
+        start_time = datetime.now()
+        sql_reformat = query_string[:20].replace("\n", "")
+        _common_.info_logger(f"starting query {sql_reformat} at {start_time}", logger=logger)
+
+        from time import sleep
+        while (response := self.client.statement_execution.get_statement(statement_response.statement_id)) and response.status.state.value not in ("SUCCEEDED", "CANCELED", "CLOSED", "FAILED"):
+            _common_.info_logger(f"statement id {statement_response.statement_id} is {response.status.state.value}, please wait...", logger=logger)
+            sleep(__TIME_WAIT__)
+        return response.result
+
+        # return self.client.statement_execution.get_statement_result_chunk_n(statement_id=statement_response.statement_id, chunk_index=1)
+        #
+
+
+
+
+
+
+
 
 
 

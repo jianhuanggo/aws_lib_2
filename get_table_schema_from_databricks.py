@@ -41,6 +41,7 @@ def get_table_schema_from_databricks(table_name: str,
             output_text += row["col_name"] + " " + row["data_type"] + ", \n"
         return output_text[:-3] + "\n)"
 
+
     try:
 
         _config = _config_.ConfigSingleton(profile_name=profile_name)
@@ -55,6 +56,7 @@ def get_table_schema_from_databricks(table_name: str,
             _config.config["TABLE_NAME"] = os.environ.get("TABLE_NAME")
 
         object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
+
         result_pd = object_api_databrick.raw_query(query_string=f"describe {table_name}").select("col_name", "data_type").toPandas()
         _common_.info_logger(result_pd, logger=logger)
 

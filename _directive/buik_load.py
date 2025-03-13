@@ -1,6 +1,5 @@
 import json
 
-from pyspark.sql.functions import column
 
 from _meta import _meta as _meta_
 from _common import _common as _common_
