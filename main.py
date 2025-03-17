@@ -1678,7 +1678,57 @@ def t():
 
     exit(0)
 
+def tt():
+    from _util import _util_file as _util_file_
+    info_needed = []
+    raw_data = _util_file_.csv_to_json("/Users/jian.huang/Downloads/title_view_time.csv")
+    print(set(each_record.get("Type")) for each_record in raw_data)
+    from sortedcontainers import SortedList
+    from pprint import pprint
+    #
+    pprint(raw_data[0])
+    # exit(0)
+
+
+    s = SortedList()
+
+
+    for each_record in raw_data:
+
+        if each_record.get("Type") == "MOVIE" and each_record.get("CMS\nGracenote ID"):
+            try:
+                formatted = each_record.get("TVT", 0.0) or 0
+                movie_name = each_record.get("Name", "default")
+                gracenote_id = each_record.get("CMS\nGracenote ID", "default")
+                s.add((- int(formatted), gracenote_id if gracenote_id else "default", movie_name if movie_name else "default"))
+            except Exception as e:
+                print("AAA")
+                print(each_record.get("TVT"))
+                print(type(each_record.get("TVT")))
+                print(e)
+                raise
+
+        if len(s) > 2000:
+            s.pop()
+
+            # if each_record.get("TVT") is None:
+            #     print((each_record.get("Name"), each_record.get("CMS\nGracenote ID"), each_record.get("TVT")))
+            #     exit(0)
+            # info_needed.append((each_record.get("Type"), each_record.get("Name"), each_record.get("CMS\nGracenote ID"), each_record.get("TVT", 0)))
+    print(s)
+    exit(0)
+    formatted_result = [(-x[0], x[1], x[2]) for x in s]
+    from pprint import pprint
+    pprint(formatted_result)
+    exit(0)
+    print(info_needed)
+
+
+    print(sorted(info_needed, key=lambda x: x[3]))
+
 if __name__ == '__main__':
+    tt()
+    exit(0)
     t()
     exit(0)
     run_hl_redshift_to_tubibricks(
