@@ -52,12 +52,19 @@ def _888603():
     from projects._888603 import solution
     solution.solution("/Users/jian.huang/Downloads/No Preview List Top 1000 Titles by TVT-2025-03-13.csv")
 
+def _try_monte():
+
+
+    pymonte_obj = _connect_.get_api("pycarlo", "config_dev")
+    pymonte_obj.get_alert()
 
 
 
 
 
 if __name__ == '__main__':
+    _try_monte()
+    exit(0)
     _888603()
     exit(0)
     _869232()

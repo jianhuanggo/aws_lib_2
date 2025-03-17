@@ -4,10 +4,10 @@ from _connect import _connect as _connect_
 from _config import config as _config_
 
 sql = """
-        with a as(
+with a as(
   select DISTINCT
     a.program_id,
-    a.title,
+    a.program_name as title,
     a.video_preview_url,
     import_id,
     landscape_img_url,
@@ -17,7 +17,7 @@ sql = """
     join datalake.content_availability s 
      on a.content_id = s.video_id
   where  s.country = 'US'
-      and is_episode is false
+      --and is_episode is false
       and s.active is true
       and s.policy is true
       and s.contains_tubitv is true
@@ -30,29 +30,28 @@ top as (
   from
     tubidw_dev.content_monthly_bycountry a
   where
-    date(ms) >= '2024-08-01'
+    date(ms) >= current_date - interval '1' month
     and country = 'US'
   group by 1
   order by 2 desc
-  limit 1000
 )
 
-select DISTINCT
-    a.program_id,
-    title,
-    a.import_id,
-    min(policy_start) as policy_start,
-    max(policy_end) as policy_end,
-    case when b.program_id is not null then 'Top 1000 Title' else 'null' end as top,
-    nap_tvt as non_autoplay_tvt
-from a
-join top b
-    on a.program_id = b.program_id
-where landscape_img_url is null
-  and policy_end >= current_date()
-  and import_id <> 'the-exchange-original'
-group by 1,2,3,6,7
-order by 7 desc, 2
+    select DISTINCT
+        a.program_id,
+        nap_tvt,
+        title,
+        a.import_id,
+        max(policy_start) as policy_start,
+        max(policy_end) as policy_end
+    from a
+    left join top b 
+      on a.program_id = b.program_id
+    where landscape_img_url is null
+    and policy_end >= current_date()
+    and import_id <> 'the-exchange-original'
+    group by 1,2,3,4
+    order by b.nap_tvt desc
+
         """
 
 def solution(csv_filepath: str):
@@ -73,10 +72,21 @@ def solution(csv_filepath: str):
         _config = _config_.ConfigSingleton(profile_name=profile_name)
         object_directive_databrick = _connect_.get_directive("databricks_sdk", profile_name)
 
-        result_pd =  object_directive_databrick.query(query_string=sql)
-        print(result_pd)
+        result = object_directive_databrick.query(query_string=sql)
+        return result.data_array if result and hasattr(result, 'data_array') else []
 
-    get_data2()
+
+    # raw_data = get_data2()
+    # formatted_data = []
+    # for each_record in raw_data:
+    #     program_id, nap_tvt, title, import_id, policy_start, policy_end = each_record
+    #     formatted_data.append({"program_id": program_id, "nap_tvt": nap_tvt, "title": title, "import_id": import_id, "policy_start": policy_start, "policy_end": policy_end})
+    #
+    # _util_file_.json_to_csv("/Users/jian.huang/Downloads/888603_landscape_posters.csv", formatted_data)
+
+    for each_record in _util_file_.csv_to_json("/Users/jian.huang/Downloads/888603_landscape_posters.csv"):
+        if each_record.get("title").lower().startswith("strike"):
+            print(each_record)
 
     exit(0)
 

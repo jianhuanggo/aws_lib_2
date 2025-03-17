@@ -674,7 +674,14 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
         _common_.info_logger(f"starting query {sql_reformat} at {start_time}", logger=logger)
 
         from time import sleep
-        while (response := self.client.statement_execution.get_statement(statement_response.statement_id)) and response.status.state.value not in ("SUCCEEDED", "CANCELED", "CLOSED", "FAILED"):
+        while True:
+
+            response = self.client.statement_execution.get_statement(statement_response.statement_id)
+            if response.status.state.value == "FAILED":
+                _common_.info_logger(response, logger=logger)
+                exit(0)
+            if response.status.state.value in ("SUCCEEDED", "CANCELED", "CLOSED"):
+                break
             _common_.info_logger(f"statement id {statement_response.statement_id} is {response.status.state.value}, please wait...", logger=logger)
             sleep(__TIME_WAIT__)
         return response.result

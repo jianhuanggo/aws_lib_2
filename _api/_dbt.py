@@ -23,3 +23,21 @@ def convert_redshift_sql_to_tubibricks(input_filepath: str, output_filepath: str
     _util_file_.identity_write_file(output_filepath, sql_text)
     return True
 
+import pandas as pd
+from inspect import currentframe
+from logging import Logger as Log
+from _meta import _meta as _meta_
+from _config import config as _config_
+
+class APIDbtCloud(metaclass=_meta_.MetaAPI):
+
+    def __init__(self,
+                 profile_name: str,
+                 config: _config_.ConfigSingleton = None,
+                 logger: Log = None):
+        self._config = config if config else _config_.ConfigSingleton()
+
+
+        print(self._config.config.get("MONTE_CARLO_MCD_ID"))
+        print(self._config.config.get("MONTE_CARLO_MCD_TOKEN"))
+
