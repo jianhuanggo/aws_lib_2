@@ -37,13 +37,11 @@ def get_table_schema_from_databricks(table_name: str,
 
     def create_table_ddl(schema: pd.DataFrame):
         output_text = f"create table {table_name} (\n"
-        for index, row in result_pd.iterrows():
+        for row in schema:
             output_text += row["col_name"] + " " + row["data_type"] + ", \n"
         return output_text[:-3] + "\n)"
 
-
     try:
-
         _config = _config_.ConfigSingleton(profile_name=profile_name)
         if profile_name:
             _config.config["PROFILE_NAME"] = profile_name
@@ -55,15 +53,32 @@ def get_table_schema_from_databricks(table_name: str,
         elif "PROFILE_NAME" in os.environ:
             _config.config["TABLE_NAME"] = os.environ.get("TABLE_NAME")
 
-        object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
+        # object_api_databrick = _connect_.get_api("databrickscluster", profile_name)
+        #
+        # result_pd = object_api_databrick.raw_query(query_string=f"describe {table_name}").select("col_name", "data_type").toPandas()
+        # _common_.info_logger(result_pd, logger=logger)
 
-        result_pd = object_api_databrick.raw_query(query_string=f"describe {table_name}").select("col_name", "data_type").toPandas()
-        _common_.info_logger(result_pd, logger=logger)
+        _config = _config_.ConfigSingleton(profile_name=profile_name)
+        object_directive_databrick = _connect_.get_directive("databricks_sdk", profile_name)
 
-        result = _util_file_.json_dumps([(each_row["col_name"], each_row["data_type"]) for _, each_row in result_pd.iterrows()]) if output_format != "ddl" else create_table_ddl(result_pd)
+        sql = f"describe {table_name}"
+        result:list = object_directive_databrick.query(query_string=sql).data_array
+        # ""data_type": column_type"
+
+        results = []
+        for col_name, column_type, _ in result:
+            results.append({"col_name": col_name, "data_type": column_type})
+            # print(f"{col_name}: {column_type}")
+
+        if output_format == "ddl":
+            output = create_table_ddl(results)
+        else:
+            output = ([(each_row["col_name"], each_row["data_type"]) for each_row in result])
+
         from _util import _util_directory as _util_directory_
         _util_directory_.create_directory("/".join(output_filepath.split("/")[:-1]))
-        _util_file_.json_dump(output_filepath, result)
+        _util_file_.json_dump(output_filepath, output)
+
         return True
 
     except Exception as err:
