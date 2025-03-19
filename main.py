@@ -1726,7 +1726,22 @@ def tt():
 
     print(sorted(info_needed, key=lambda x: x[3]))
 
+# def _check():
+#     filepath = "/Users/jian.huang/projects/de_release/dw/tubibricks/seeds/revenue/content_deal_term_raw.csv"
+#     from _util import  _util_file as _util_file_
+#     data = _util_file_.csv_to_json(filepath)
+#     from collections import Counter
+#     # print(data[0])
+#     # exit(0)
+#     a = [(Counter([each_record.get('studio') for each_record in data])
+
 if __name__ == '__main__':
+
+
+
+
+    # _check()
+    # exit(0)
     tt()
     exit(0)
     t()

@@ -668,12 +668,12 @@ class DirectiveDatabricks_SDK(metaclass=_meta_.MetaDirective):
 
         statement_response = self.client.statement_execution.execute_statement(query_string, warehouse_id)
 
-
         start_time = datetime.now()
         sql_reformat = query_string[:20].replace("\n", "")
         _common_.info_logger(f"starting query {sql_reformat} at {start_time}", logger=logger)
 
         from time import sleep
+
         while True:
 
             response = self.client.statement_execution.get_statement(statement_response.statement_id)
