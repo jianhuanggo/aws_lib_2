@@ -14,7 +14,7 @@ from time import sleep
 
 """
 bucket_name = 'my_bucket'
-folder_path = '/Users/jhuang15/opt/anaconda3/envs/zachboard-companion/zachboard-companion/data/wavefront_dashboard'
+folder_path = '/Users/jhuang15/opt/miniconda3/envs/zachboard-companion/zachboard-companion/data/wavefront_dashboard'
 s3_client = boto3.client('s3')
 textract_client = boto3.client('textract')
 

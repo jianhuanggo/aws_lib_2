@@ -17,7 +17,7 @@ class AwsApiAWSLambda(metaclass=_meta_.Meta):
 
         self._client = self._session.client("lambda")
 
-    @_common_.cache_result("/Users/jhuang15/opt/anaconda3/envs/identity_meta/identity_meta/Save/preprod_lambda_arn_name.json")
+    @_common_.cache_result("/Users/jhuang15/opt/miniconda3/envs/identity_meta/identity_meta/Save/preprod_lambda_arn_name.json")
     @_common_.get_aws_resource("Marker")
     def list_functions(self,
                        filtering_field: Union[str, List] = None,

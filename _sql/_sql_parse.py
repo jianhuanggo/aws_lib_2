@@ -63,4 +63,4 @@ def read_sql(sql_filepath: str):
     return _util_file_.identity_load_file(sql_filepath)
 
 if __name__ == '__main__':
-    extract_cte_select(read_sql("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_sql/data/ hive_metastore.tubibricks_dev.all_metric_hourly.sql"))
+    extract_cte_select(read_sql("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/_sql/data/ hive_metastore.tubibricks_dev.all_metric_hourly.sql"))

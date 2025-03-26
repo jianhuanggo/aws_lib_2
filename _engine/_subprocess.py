@@ -462,7 +462,7 @@ class ShellRunner:
         # def test_command(command, env, cwd=""):
         #     try:
         #         print(env)
-        #         # env["PATH"] = "/opt/homebrew/opt/libpq/bin /Users/jian.huang/.nvm/versions/node/v20.11.1/bin /Users/jian.huang/.local/bin /Users/jian.huang/anaconda3/condabin /opt/homebrew/bin /opt/homebrew/sbin /usr/local/bin /System/Cryptexes/App/usr/bin /usr/bin /bin /usr/sbin /sbin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin /Users/jian.huang/Applications/iTerm.app/Contents/Resources/utilities /Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+        #         # env["PATH"] = "/opt/homebrew/opt/libpq/bin /Users/jian.huang/.nvm/versions/node/v20.11.1/bin /Users/jian.huang/.local/bin /Users/jian.huang/miniconda3/condabin /opt/homebrew/bin /opt/homebrew/sbin /usr/local/bin /System/Cryptexes/App/usr/bin /usr/bin /bin /usr/sbin /sbin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin /Users/jian.huang/Applications/iTerm.app/Contents/Resources/utilities /Applications/Visual Studio Code.app/Contents/Resources/app/bin"
         #
         #         # print(env.get("PATH"))
         #         # exit(0)

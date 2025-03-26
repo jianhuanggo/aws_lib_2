@@ -304,5 +304,5 @@ def run(task_id: str):
 
     consul agent -dev
     """
-    formatted_task = task_format(tasks=_util_file_.json_load("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_orchestration/_actor_model/task_list.json"))
+    formatted_task = task_format(tasks=_util_file_.json_load("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/_orchestration/_actor_model/task_list.json"))
     put_task(task_id, formatted_task)
