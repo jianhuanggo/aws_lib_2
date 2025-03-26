@@ -49,8 +49,8 @@ class SemanticSearchFaiss:
         """
         default to paraphrase-MiniLM-L6-v2 which gives reasonable performance for the job, can switch other higher dimension embedding if needed
 
-        SS_ROOT_DATA_DIR: /Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/data/
-SS_ROOT_INDEX_DIR: /Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/data/
+        SS_ROOT_DATA_DIR: /Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/data/
+SS_ROOT_INDEX_DIR: /Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/data/
         """
 
         self.config = _config_.ConfigSingleton(profile_name)

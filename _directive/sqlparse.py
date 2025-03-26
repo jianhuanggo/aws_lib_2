@@ -88,7 +88,7 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
             }
         column_names = [(col_name, column_type_conversation.get(col_type, col_type)) for col_name, col_type in column_names]
 
-        template = Template(_util_file_.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/schema_redshift.sql"))
+        template = Template(_util_file_.identity_load_file("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/schema_redshift.sql"))
         from datetime import datetime
         redshift_history_manifest = template.render(
             macro_name=f"{domain_name}_{datetime.now().strftime('%Y%m%d')}_{table_name}",
@@ -116,7 +116,7 @@ class DirectiveSQLParse(metaclass=_meta_.MetaDirective):
                                      logger: Log = None) -> bool:
 
 
-        template = Template(_util_file_.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/tubibricks_template.sql"))
+        template = Template(_util_file_.identity_load_file("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/_pattern_template/tubibricks_template.sql"))
         from datetime import datetime
         redshift_history_manifest = template.render(
             input_sql=f"{domain_name}_{datetime.now().strftime('%Y%m%d')}_{table_name}",

@@ -25,7 +25,7 @@ def test():
 def run():
     from task.analysis import analysis
     # analysis.find_similar_directory("adserver_metric_daily", "/Users/jian.huang/projects/dw/tubibricks/models")
-    col_lst, groupby_lst, orderby_lst = analysis.get_table_info("/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/task/801954")
+    col_lst, groupby_lst, orderby_lst = analysis.get_table_info("/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/task/801954")
     gen_group_list = analysis.generate_id_columns(col_lst, groupby_lst)
     sql_group_list = """
     {% set id_columns = ["ds", "platform", "country", "city", "subdivision", "dma", "language", "autoplay_on", "content_genres", "content_ratings", "content_type", "device_type", "revenue_vertical", "ramp_id_type", "identity_data_source", "ad_opportunity_reason", "opt_out", "is_coppa", "coppa_enabled", "Ad_break_position", "user_gender", "targeted_seq_pos", "device_deal", "remnant_status", "autoplay_idx", "tracking_mode", "app_mode", "Logged_status", "postal_code", "user_age"] %}
@@ -63,7 +63,7 @@ def run2(vars_dict: Dict):
     """
 
     # from _util import _util_directory as _util_directory_
-    # print(_util_directory_.dirs_in_dir("/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/task"))
+    # print(_util_directory_.dirs_in_dir("/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/task"))
     #
     # exit(0)
     # from task import task_completion
@@ -76,7 +76,7 @@ def run2(vars_dict: Dict):
 
     # from _management._meta import _inspect_module
     #
-    # sql_file = _inspect_module.load_module_from_path("/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/task/800000/jian_poc_model.py", "test")
+    # sql_file = _inspect_module.load_module_from_path("/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/task/800000/jian_poc_model.py", "test")
     # print(sql_file.SQL)
     #
     # exit(0)
@@ -164,7 +164,7 @@ def run_search():
     #         embeddings = self.model.encode(message)
     #         embedding_shape = embeddings.shape
     #         print(embedding_shape)
-    print(ss.load_index("/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/search_index.json"))
+    print(ss.load_index("/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/search_index.json"))
 
 """
 """
@@ -218,8 +218,8 @@ def latest_template():
 
     from _pattern_template._process_template import _process_template
 
-    # t_task = _process_template.process_template("/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/_pattern_template/tubibricks_deployment_only.yaml", "config_dev")
-    t_task = _process_template.process_template("config_prod", "/Users/jian.huang/anaconda3/envs/aws_lib/pg-aws-lib/_pattern_template/tubibricks_history_load_template.yaml", )
+    # t_task = _process_template.process_template("/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/_pattern_template/tubibricks_deployment_only.yaml", "config_dev")
+    t_task = _process_template.process_template("config_prod", "/Users/jian.huang/miniconda3/envs/aws_lib/pg-aws-lib/_pattern_template/tubibricks_history_load_template.yaml", )
 
     shell_runner = ShellRunner()
     execute_command_from_dag(shell_runner, t_task.tasks)
@@ -451,7 +451,7 @@ _id STRING,
     final_sql = result.strip()[:-1] + f"\nfrom {table_name1} t1 inner join {table_name2} t2 using ({''.join(join_col)})\n"
     from _util import _util_file
     counter = 0
-    dirpath = "/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2"
+    dirpath = "/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2"
     from os import path
     file_name_prefix = "v"
     file_name = f"{file_name_prefix}{str(counter)}.sql"
@@ -701,7 +701,7 @@ def hist_temp(env: str):
     from pprint import pprint
     result = []
     counter = 0
-    content = _util_file.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/temp/801954_hist_load.txt")
+    content = _util_file.identity_load_file("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/temp/801954_hist_load.txt")
     for each_line in content.split("\n"):
 
 
@@ -730,7 +730,7 @@ def hist_temp(env: str):
 
 def get_schema_info():
     from _util import _util_file
-    sql_text = _util_file.identity_load_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/temp/adserver_metrics_daily.ddl")
+    sql_text = _util_file.identity_load_file("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/temp/adserver_metrics_daily.ddl")
 
     sql_object = _connect_.get_directive(object_name="sqlparse", profile_name="config_dev")
     x = sql_object.extract_info_from_ddl(sql_text)
@@ -1353,7 +1353,7 @@ def job_m(run_id: int):
 def parse_sql():
     from _sql import _sql_parse
     _sql_parse.extract_cte_select(_sql_parse.read_sql(
-            "/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/_sql/data/hive_metastore.tubibricks_dev.all_metric_hourly.sql"))
+            "/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/_sql/data/hive_metastore.tubibricks_dev.all_metric_hourly.sql"))
 
 def format_dbt_compile_output(filepath: str, output_filepath: str):
     from _api import _dbt as _dbt_
@@ -1370,7 +1370,7 @@ def check():
 
 def print_jobs():
     from _util import _util_file as _util_file_
-    for each_job in _util_file_.json_load("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/my_job_id.json"):
+    for each_job in _util_file_.json_load("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/my_job_id.json"):
         print(each_job.get("job_id"))
 
 def create_table(filepath: str):
@@ -1619,11 +1619,11 @@ def list_files():
 def workspace_upload():
     from _databricks import _cli_source
     _cli_source.databricks_upload_workspace_file(profile_name="config_prod",
-                                 from_local_filepath="/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
+                                 from_local_filepath="/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
                                  to_workspace_filepath="/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py"
                                                  )
     # databricks_obj = _connect_.get_directive("databricks_sdk", "config_prod")
-    # databricks_obj.upload_workspace_file("/Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
+    # databricks_obj.upload_workspace_file("/Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py",
     #                                      "/Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py", overwrite=True)
 
 

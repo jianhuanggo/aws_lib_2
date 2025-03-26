@@ -17,7 +17,7 @@ def run_databricks_upload_workspace_file(profile_name, from_local_filepath, to_w
     """
     to start a sample run, you can use following command:
     
-    python databricks_upload_workspace_file.py  --profile_name config_prod --from_local_filepath /Users/jian.huang/anaconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py --to_workspace_filepath /Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py
+    python databricks_upload_workspace_file.py  --profile_name config_prod --from_local_filepath /Users/jian.huang/miniconda3/envs/aws_lib_2/aws_lib_2/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py --to_workspace_filepath /Users/jian.huang@tubi.tv/scripts/notebook_convert_redshift_tubibricks_history_load_prod.py
     """
     
     
